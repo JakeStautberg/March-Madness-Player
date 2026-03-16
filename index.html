@@ -39,6 +39,132 @@ GA4 TAG END -->
 
 <!-- EmailJS — free tier, no backend needed -->
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<!-- Firebase — real-time shared data -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, onSnapshot, deleteDoc, query, orderBy }
+  from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCDlQPFWn-BMIwUnvHtOANYllsPkMyqUYs",
+  authDomain: "march-madness-player.firebaseapp.com",
+  projectId: "march-madness-player",
+  storageBucket: "march-madness-player.firebasestorage.app",
+  messagingSenderId: "872801463661",
+  appId: "1:872801463661:web:88a4874596568e3ec3fe64"
+};
+
+try {
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+  window._db = db;
+  window._fbReady = true;
+
+  // Expose Firestore helpers globally
+  window._fb = { doc, setDoc, getDoc, collection, getDocs, onSnapshot, deleteDoc, query, orderBy };
+
+  // ── REAL-TIME LISTENERS ──────────────────────────────
+  // Teams — updates leaderboard live for everyone
+  onSnapshot(collection(db, 'teams'), snap => {
+    const fbTeams = snap.docs.map(d => d.data());
+    // Merge into localStorage so offline still works
+    const local = JSON.parse(localStorage.getItem('bb_teams')||'[]');
+    // FB is the source of truth — replace local
+    localStorage.setItem('bb_teams', JSON.stringify(fbTeams));
+    if(window.TEAMS !== undefined){
+      window.TEAMS = fbTeams;
+      if(typeof renderLB==='function')     renderLB('all');
+      if(typeof renderHomeLB==='function') renderHomeLB();
+      if(typeof updateHeroStats==='function') updateHeroStats();
+      if(typeof renderMyTeams==='function' &&
+         document.getElementById('page-myteams')?.classList.contains('active'))
+        renderMyTeams();
+    }
+  });
+
+  // Users — keeps user count in sync
+  onSnapshot(collection(db, 'users'), snap => {
+    const fbUsers = {};
+    snap.docs.forEach(d => { fbUsers[d.id] = d.data(); });
+    localStorage.setItem('bb_users', JSON.stringify(fbUsers));
+    if(window.USERS !== undefined){
+      window.USERS = fbUsers;
+      if(typeof updateHeroStats==='function') updateHeroStats();
+    }
+  });
+
+  // Controls — commissioner changes apply to everyone instantly
+  onSnapshot(doc(db, 'settings', 'controls'), snap => {
+    if(snap.exists()){
+      const ctrl = snap.data();
+      localStorage.setItem('bb_ctrl', JSON.stringify(ctrl));
+      if(window.CTRL !== undefined){
+        window.CTRL = ctrl;
+        if(typeof applyLockUI==='function') applyLockUI();
+      }
+    }
+  });
+
+  // Announcement — shows banner to everyone live
+  onSnapshot(doc(db, 'settings', 'announcement'), snap => {
+    if(snap.exists()){
+      const text = snap.data().text || '';
+      localStorage.setItem('bb_ann', JSON.stringify(text));
+      const bar = document.getElementById('announce-bar');
+      if(bar){ bar.textContent = text ? '📢 '+text : ''; bar.classList.toggle('on', !!text); }
+    }
+  });
+
+  console.log('✅ Firebase connected — real-time sync active');
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const badge = document.getElementById('fb-status-badge');
+    if(badge){ badge.textContent='🔥 Live'; badge.style.color='var(--green)'; }
+  });
+
+} catch(e) {
+  console.warn('Firebase error:', e.message);
+  window._fbReady = false;
+}
+
+// ── FIREBASE WRITE HELPERS (called from main JS) ──────
+window.fbSaveUser = async (email, data) => {
+  if(!window._db) return;
+  const {doc,setDoc} = window._fb;
+  await setDoc(doc(window._db,'users',email), data);
+};
+window.fbSaveTeam = async (team) => {
+  if(!window._db) return;
+  const {doc,setDoc} = window._fb;
+  await setDoc(doc(window._db,'teams',String(team.id)), team);
+};
+window.fbDeleteTeam = async (id) => {
+  if(!window._db) return;
+  const {doc,deleteDoc} = window._fb;
+  await deleteDoc(doc(window._db,'teams',String(id)));
+};
+window.fbDeleteUser = async (email) => {
+  if(!window._db) return;
+  const {doc,deleteDoc} = window._fb;
+  await deleteDoc(doc(window._db,'users',email));
+};
+window.fbSaveControls = async (ctrl) => {
+  if(!window._db) return;
+  const {doc,setDoc} = window._fb;
+  await setDoc(doc(window._db,'settings','controls'), ctrl);
+};
+window.fbSaveAnnouncement = async (text) => {
+  if(!window._db) return;
+  const {doc,setDoc} = window._fb;
+  await setDoc(doc(window._db,'settings','announcement'), {text});
+};
+window.fbSavePlayerStats = async (name, stats) => {
+  if(!window._db) return;
+  const {doc,setDoc} = window._fb;
+  const key = name.replace(/[^a-zA-Z0-9]/g,'_');
+  await setDoc(doc(window._db,'playerStats',key), {...stats, name});
+};
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800;900&family=Lora:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1391,6 +1517,7 @@ function doAuth(){
   if(!USERS[email]){
     USERS[email]={email,pw,joinedAt:Date.now()};
     saveAll();
+    if(window.fbSaveUser) window.fbSaveUser(email, USERS[email]).catch(()=>{});
     toast('Account created! Welcome 🏀','ok');
   } else {
     if(USERS[email].pw!==pw){ toast('Wrong password','err'); return; }
@@ -1536,6 +1663,7 @@ function lockTeam(){
   const entry={id:Date.now(),name,owner:user,teams:[...SEL],picks:{...PICKS},tiebreaker:tb,points:0,adjustment:0,createdAt:Date.now()};
   TEAMS.push(entry);
   recalcAll();
+  if(window.fbSaveTeam) window.fbSaveTeam(entry).catch(()=>{});
   // FIX BUG 2: fully reset wizard
   SEL=[]; PICKS={};
   document.getElementById('teams-grid').innerHTML='';
@@ -1972,6 +2100,7 @@ function savePicksEdit(){
     if(sel.value) t.picks[sel.dataset.team]=sel.value;
   });
   recalcAll();
+  if(window.fbSaveTeam) window.fbSaveTeam(t).catch(()=>{});
   closeModal('picks-edit-modal');
   renderMyTeams();
   toast('Player picks updated ✓','ok');
@@ -1981,6 +2110,7 @@ function delTeam(id){
   if(!confirm('Delete this team permanently?')) return;
   TEAMS=TEAMS.filter(t=>t.id!==id);
   saveAll();
+  if(window.fbDeleteTeam) window.fbDeleteTeam(id).catch(()=>{});
   toast('Team deleted','err');
   renderMyTeams();
   updateHeroStats();
@@ -2053,6 +2183,7 @@ function changeCommPw(){
 function applyCtrl(key,val){
   CTRL[key]=val;
   LS.s('bb_ctrl',CTRL);
+  if(window.fbSaveControls) window.fbSaveControls(CTRL).catch(()=>{});
   document.getElementById('cs-lock').textContent=CTRL.picksLocked?'LOCKED':'AUTO';
   document.getElementById('cs-lock').style.color=CTRL.picksLocked?'var(--red)':'var(--green)';
   applyLockUI();
@@ -2111,6 +2242,7 @@ function commSaveEntry(id){
   const totalEl=document.getElementById('ce-total-'+id);
   if(totalEl) totalEl.textContent=t.points;
   saveAll();
+  if(window.fbSaveTeam) window.fbSaveTeam(t).catch(()=>{});
   renderLB('all');
   renderHomeLB();
   toast(`"${t.name}" saved ✓`,'ok');
@@ -2123,7 +2255,6 @@ function saveAllEntries(){
 
 function commViewPicks(id){
   const t=TEAMS.find(x=>x.id===id); if(!t) return;
-  // FIX BUG 8: use a styled modal instead of alert()
   openPicksEdit(id);
 }
 
@@ -2131,7 +2262,9 @@ function commDelEntry(id){
   const t=TEAMS.find(x=>x.id===id);
   if(!t||!confirm(`Delete "${t.name}"?`)) return;
   TEAMS=TEAMS.filter(x=>x.id!==id);
-  saveAll(); renderCommEntries();
+  saveAll();
+  if(window.fbDeleteTeam) window.fbDeleteTeam(id).catch(()=>{});
+  renderCommEntries();
   document.getElementById('cs-entries').textContent=TEAMS.length;
   toast(`"${t.name}" deleted`,'err');
 }
@@ -2149,9 +2282,13 @@ function renderCommUsers(){
 
 function commDelUser(email){
   if(!confirm(`Remove ${email} and all their teams?`)) return;
+  const theirTeams = TEAMS.filter(t=>t.owner===email);
   TEAMS=TEAMS.filter(t=>t.owner!==email);
   delete USERS[email];
-  saveAll(); loadCommDash();
+  saveAll();
+  if(window.fbDeleteUser) window.fbDeleteUser(email).catch(()=>{});
+  theirTeams.forEach(t=>{ if(window.fbDeleteTeam) window.fbDeleteTeam(t.id).catch(()=>{}); });
+  loadCommDash();
   toast(`${email} removed`,'err');
 }
 
@@ -2185,6 +2322,9 @@ function commSaveStats(){
   };
   STATS[name]=s;
   recalcAll();
+  // Sync updated stats and all team points to Firebase
+  if(window.fbSavePlayerStats) window.fbSavePlayerStats(name,s).catch(()=>{});
+  TEAMS.forEach(t=>{ if(window.fbSaveTeam) window.fbSaveTeam(t).catch(()=>{}); });
   renderCommEntries();
   document.getElementById('stat-result').textContent=`✓ ${name}: FP = ${calcFP(s)>0?'+':''}${calcFP(s)} (PTS:${s.pts} REB:${s.reb} AST:${s.ast} STL:${s.stl} BLK:${s.blk} TO:${s.to} PF:${s.foul})`;
   toast(`Stats saved for "${name}" ✓`,'ok');
@@ -2608,6 +2748,7 @@ function queueEmail(round){ previewAndSend(round); }
 function saveAnnouncement(){
   ANN=document.getElementById('announce-text').value.trim();
   LS.s('bb_ann',ANN);
+  if(window.fbSaveAnnouncement) window.fbSaveAnnouncement(ANN).catch(()=>{});
   const bar=document.getElementById('announce-bar');
   bar.textContent=ANN?'📢 '+ANN:'';
   bar.classList.toggle('on',!!ANN);
