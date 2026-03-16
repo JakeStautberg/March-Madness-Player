@@ -1,0 +1,3120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRACKET BOSS — 2026 NCAA Tournament</title>
+
+<!-- ═══════════════════════════════════════════
+  GOOGLE ANALYTICS — paste your GA4 tag here
+  1. Go to analytics.google.com
+  2. Create account → property → data stream (web)
+  3. Copy the "Google tag" snippet and replace below
+  ═══════════════════════════════════════════ -->
+<!-- GA_PLACEHOLDER_START
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
+GA_PLACEHOLDER_END -->
+
+<!-- ═══ GOOGLE ANALYTICS — paste your GA4 Measurement ID below ═══
+     1. Go to analytics.google.com → create account → create property
+     2. Choose Web, enter your Netlify URL
+     3. Copy the tag below replacing G-XXXXXXXXXX with your Measurement ID
+     Remove these comment lines once configured.
+-->
+<!-- GA4 TAG START
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
+GA4 TAG END -->
+
+<!-- EmailJS — free tier, no backend needed -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800;900&family=Lora:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0e14;--surface:#111620;--card:#161c28;--raised:#1c2335;--border:#252d3f;
+  --accent:#ff6b1a;--accent2:#ffaa00;--blue:#3b82f6;--teal:#14b8a6;
+  --green:#22c55e;--red:#ef4444;--text:#e8eaf0;--muted:#6b7280;--dim:#374151;
+}
+body.light-mode{
+  --bg:#f4f1eb;--surface:#ffffff;--card:#faf8f4;--raised:#f0ece4;--border:#d8d0c4;
+  --text:#1a1a1a;--muted:#6b6560;--dim:#c0b8ac;
+}
+/* Theme toggle button */
+.theme-toggle{
+  background:transparent;border:1px solid var(--border);color:var(--muted);
+  font-size:16px;width:34px;height:34px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;border-radius:4px;flex-shrink:0;
+}
+.theme-toggle:hover{border-color:var(--accent);color:var(--accent);}
+/* Collapsible rules */
+.rules-toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;user-select:none;padding:14px 16px;
+  background:var(--card);border:1px solid var(--border);
+}
+.rules-toggle:hover{border-color:var(--accent);}
+.rules-toggle-hed{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--text);}
+.rules-toggle-icon{font-size:18px;color:var(--muted);transition:transform .25s;}
+.rules-toggle-icon.open{transform:rotate(180deg);}
+.rules-body{display:none;background:var(--card);border:1px solid var(--border);border-top:none;padding:16px;}
+.rules-body.open{display:block;}
+.rules-step{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start;}
+.rules-step:last-child{margin-bottom:0;}
+.rules-step-n{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--accent);line-height:1;flex-shrink:0;width:24px;}
+.rules-step-text{font-size:13px;line-height:1.65;color:var(--text);}
+.rules-step-text strong{color:var(--accent2);}
+/* Light mode — comprehensive */
+body.light-mode .nav-btn{color:#555;}
+body.light-mode .nav-btn:hover{color:#1a1a1a;}
+body.light-mode .nav-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+body.light-mode header{background:#fff;border-bottom-color:#d8d0c4;}
+body.light-mode .hdr-top{border-bottom-color:#d8d0c4;}
+body.light-mode .game-card{background:#fff;border-color:#d8d0c4;}
+body.light-mode .game-card:hover{border-color:#b0a898;}
+body.light-mode .score-nums{color:#1a1a1a;}
+body.light-mode .score-nums .sep{color:#bbb;}
+body.light-mode .score-nums .win{color:#1a7a3e;}
+body.light-mode .team-abbr{color:#1a1a1a;}
+body.light-mode .team-full{color:#666;}
+body.light-mode .game-round-tag{color:#c9780a;}
+body.light-mode .game-time-tag{color:#555;}
+body.light-mode .wordmark{color:#1a1a1a;}
+body.light-mode .modal{background:#fff;}
+body.light-mode .modal-hd{background:#f4f1eb;}
+body.light-mode .slot-sel{background:#fff;border-color:#d8d0c4;color:#1a1a1a;}
+body.light-mode .fm-input{background:#fff;border-color:#d8d0c4;color:#1a1a1a;}
+body.light-mode .comm-ta{background:#fff;border-color:#d8d0c4;color:#1a1a1a;}
+body.light-mode .comm-section{background:#fff;border-color:#d8d0c4;}
+body.light-mode .comm-section-title{color:#c9780a;}
+body.light-mode .stat-box{background:#fff;border-color:#d8d0c4;}
+body.light-mode .stat-box-n{color:var(--accent);}
+body.light-mode .stat-box-l{color:#666;}
+body.light-mode .my-team-block{background:#fff;border-color:#d8d0c4;}
+body.light-mode .mt-title{color:#1a1a1a;}
+body.light-mode .mt-rank{color:#666;}
+body.light-mode .b-game{background:#fff;border-color:rgba(0,0,0,.14);}
+body.light-mode .b-name{color:rgba(0,0,0,.65);}
+body.light-mode .b-seed{color:rgba(0,0,0,.3);}
+body.light-mode .b-sc{color:rgba(0,0,0,.4);}
+body.light-mode .b-team.W .b-name{color:#1a1a1a;font-weight:700;}
+body.light-mode #page-bracket{background:#e8e4dc;}
+body.light-mode .bracket-hed{color:#1a1a1a;}
+body.light-mode .bracket-sub{color:#666;}
+body.light-mode .rb-label{color:#c9780a;}
+body.light-mode .ff-box{background:rgba(201,120,10,.06);border-color:rgba(201,120,10,.3);}
+body.light-mode .ff-slot{color:#c9780a;background:rgba(201,120,10,.08);border-color:rgba(201,120,10,.3);}
+body.light-mode .card{background:#fff;border-color:#d8d0c4;}
+body.light-mode .lb-table th{background:#f4f1eb;color:#666;}
+body.light-mode .lb-table td{border-bottom-color:rgba(0,0,0,.08);}
+body.light-mode .lb-table tr:hover td{background:rgba(255,107,26,.04);}
+body.light-mode .rank-n{color:#aaa;}
+body.light-mode .pts-val{color:var(--accent);}
+body.light-mode .pst th{background:#f4f1eb;color:#666;}
+body.light-mode .pst td{border-bottom-color:rgba(0,0,0,.07);}
+body.light-mode .pst td.nm{color:#1a1a1a;}
+body.light-mode .pst td.fp{color:var(--accent);}
+body.light-mode .plink{color:#1a6abf;}
+body.light-mode .sec-title{color:#1a1a1a;}
+body.light-mode .sec-head{border-bottom-color:#d8d0c4;}
+body.light-mode .wizard-bar{background:#f4f1eb;border-color:#d8d0c4;}
+body.light-mode .wiz-step{border-right-color:#d8d0c4;}
+body.light-mode .wiz-step-lbl{color:#666;}
+body.light-mode .wiz-step-num{color:#ccc;}
+body.light-mode .wiz-step.active .wiz-step-num{color:var(--accent);}
+body.light-mode .wiz-step.done .wiz-step-num{color:#14b8a6;}
+body.light-mode .sel-bar{background:#f4f1eb;border-color:#d8d0c4;}
+body.light-mode .sel-track{background:#d8d0c4;}
+body.light-mode .region-head{color:var(--accent);border-bottom-color:var(--accent);}
+body.light-mode .team-tile{background:#fff;border-color:#d8d0c4;}
+body.light-mode .tile-name{color:#1a1a1a;}
+body.light-mode .tile-conf{color:#888;}
+body.light-mode .tile-seed{color:#999;}
+body.light-mode .tile-playin{color:#c9780a;}
+body.light-mode .team-tile.sel{background:rgba(255,107,26,.07);border-color:var(--accent);}
+body.light-mode .player-slot{background:#fff;border-color:#d8d0c4;}
+body.light-mode .slot-team{color:var(--accent);}
+body.light-mode .ann-card{background:#fff;border-color:#d8d0c4;}
+body.light-mode .ann-title{color:#1a1a1a;}
+body.light-mode .ann-body{color:#333;}
+body.light-mode .ann-meta{color:#888;}
+body.light-mode .rules-toggle{background:#fff;border-color:#d8d0c4;}
+body.light-mode .rules-toggle-hed{color:#1a1a1a;}
+body.light-mode .rules-toggle-icon{color:#888;}
+body.light-mode .rules-body{background:#fff;border-color:#d8d0c4;}
+body.light-mode .rules-step-text{color:#333;}
+body.light-mode .ge-input{background:#fff;border-color:#d8d0c4;color:#1a1a1a;}
+body.light-mode .ge-score{background:#fff;border-color:#d8d0c4;color:#1a1a1a;}
+body.light-mode .ge-select{background:#fff;border-color:#d8d0c4;color:#1a1a1a;}
+body.light-mode .comm-table th{background:#f4f1eb;color:#666;}
+body.light-mode .comm-table td{border-bottom-color:rgba(0,0,0,.08);}
+body.light-mode .edit-pts{background:#fff;border-color:#d8d0c4;color:#1a1a1a;}
+body.light-mode .edit-text{background:#fff;border-color:#d8d0c4;color:#1a1a1a;}
+body.light-mode .stag.p{background:rgba(34,197,94,.08);}
+body.light-mode .stag.n{background:rgba(239,68,68,.08);}
+body.light-mode .lock-banner{background:rgba(239,68,68,.08);}
+body.light-mode .announce-bar{background:linear-gradient(90deg,rgba(255,107,26,.1),rgba(255,170,0,.07));}
+body.light-mode .live-badge{background:rgba(239,68,68,.1);}
+body.light-mode .tb-box{background:linear-gradient(135deg,#eef4ff,#f8f4ec);}
+body.light-mode .tb-hed{color:#c9780a;}
+body.light-mode .tb-desc{color:#555;}
+body.light-mode .tb-input{background:#fff;border-color:#c9780a;color:#1a1a1a;}
+body.light-mode .overlay{background:rgba(0,0,0,.5);}
+body.light-mode .confirm-chips .chip{background:#f4f1eb;border-color:#d8d0c4;color:#1a1a1a;}
+body.light-mode .chip strong{color:var(--accent);}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Lora',Georgia,serif;background:var(--bg);color:var(--text);min-height:100vh;}
+header{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:52px;border-bottom:1px solid var(--border);}
+.wordmark{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;letter-spacing:3px;text-transform:uppercase;cursor:pointer;user-select:none;}
+.wordmark span{color:var(--accent);}
+.hdr-right{display:flex;align-items:center;gap:10px;}
+.auth-btn{background:var(--accent);border:none;color:white;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:7px 18px;cursor:pointer;transition:background .15s;}
+.auth-btn:hover{background:#e85a10;}
+.auth-btn.out{background:transparent;border:1px solid var(--dim);color:var(--muted);}
+.auth-btn.out:hover{border-color:var(--text);color:var(--text);}
+nav{display:flex;padding:0 20px;height:38px;overflow-x:auto;gap:0;}
+.nav-btn{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:transparent;border:none;padding:0 14px;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .15s;}
+.nav-btn:hover{color:var(--text);}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.comm-nav{color:var(--accent2) !important;display:none;}
+.announce-bar{background:linear-gradient(90deg,rgba(255,107,26,.15),rgba(255,170,0,.1));border-bottom:1px solid rgba(255,107,26,.3);padding:9px 20px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;letter-spacing:.5px;color:var(--accent);display:none;}
+.announce-bar.on{display:block;}
+.page{display:none;min-height:calc(100vh - 90px);position:relative;z-index:1;}
+.page.active{display:block;}
+.wrap{max-width:1300px;margin:0 auto;padding:24px 20px;}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.sec-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;}
+.live-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.3);color:var(--red);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:2px 8px;}
+.live-dot{width:6px;height:6px;background:var(--red);border-radius:50%;animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.btn{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:9px 22px;border:none;cursor:pointer;transition:all .15s;}
+.btn-primary{background:var(--accent);color:white;}
+.btn-primary:hover{background:#e85a10;}
+.btn-primary:disabled{background:var(--dim);cursor:not-allowed;}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-ghost:hover{border-color:var(--text);color:var(--text);}
+.btn-danger{background:transparent;border:1px solid var(--red);color:var(--red);}
+.btn-danger:hover{background:var(--red);color:white;}
+.btn-sm{padding:5px 12px;font-size:11px;}
+.card{background:var(--card);border:1px solid var(--border);padding:16px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+/* HERO */
+.hero{background:linear-gradient(135deg,#0d1a30 0%,#0b0e14 60%);padding:44px 20px 36px;position:relative;overflow:hidden;text-align:center;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(255,107,26,.08) 0%,transparent 70%);}
+.hero-eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:4px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;position:relative;}
+.hero-title{font-family:'Barlow Condensed',sans-serif;font-size:clamp(52px,9vw,100px);font-weight:900;letter-spacing:4px;text-transform:uppercase;line-height:.95;position:relative;}
+.hero-title em{display:block;font-style:normal;color:var(--accent);font-size:.45em;letter-spacing:10px;}
+.hero-sub{font-style:italic;font-size:14px;color:var(--muted);margin-top:12px;position:relative;}
+.hero-stats{display:flex;justify-content:center;margin-top:28px;position:relative;}
+.hero-stat{padding:12px 28px;border-right:1px solid var(--border);text-align:center;}
+.hero-stat:last-child{border-right:none;}
+.hero-stat-n{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:var(--accent);line-height:1;}
+.hero-stat-l{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+/* GAME CARD */
+.game-card{background:var(--card);border:1px solid var(--border);padding:12px 14px;}
+.game-round-tag{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent2);margin-bottom:4px;}
+.game-score-row{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.team-blk{flex:1;}
+.team-abbr{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;}
+.team-full{font-size:10px;color:var(--muted);font-style:italic;line-height:1.2;}
+.score-ctr{text-align:center;min-width:72px;}
+.score-nums{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;line-height:1;}
+.score-nums .win{color:var(--green);}
+.score-nums .sep{color:var(--dim);font-size:16px;margin:0 3px;}
+.score-clock{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;}
+.game-time-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
+/* SCORING */
+.stags{display:flex;gap:6px;flex-wrap:wrap;}
+.stag{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border:1px solid;}
+.stag.p{border-color:var(--green);color:var(--green);background:rgba(34,197,94,.07);}
+.stag.n{border-color:var(--red);color:var(--red);background:rgba(239,68,68,.07);}
+/* BUILD */
+.wizard-bar{display:flex;background:var(--surface);border:1px solid var(--border);margin-bottom:20px;}
+.wiz-step{flex:1;padding:12px 10px;text-align:center;border-right:1px solid var(--border);cursor:pointer;}
+.wiz-step:last-child{border-right:none;}
+.wiz-step-num{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--dim);line-height:1;}
+.wiz-step-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+.wiz-step.active .wiz-step-num{color:var(--accent);}
+.wiz-step.active .wiz-step-lbl{color:var(--text);}
+.wiz-step.done .wiz-step-num{color:var(--teal);}
+.wizard-panel{display:none;}
+.wizard-panel.active{display:block;}
+.sel-bar{display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);padding:10px 16px;margin-bottom:18px;}
+.sel-num{font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:900;color:var(--accent);line-height:1;}
+.sel-track{flex:1;height:4px;background:var(--dim);}
+.sel-fill{height:100%;background:var(--accent);transition:width .3s;}
+.region-head{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);padding:6px 0;border-bottom:2px solid var(--accent);margin-bottom:10px;margin-top:20px;}
+.region-head:first-child{margin-top:0;}
+.teams-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;}
+.team-tile{background:var(--card);border:1px solid var(--border);padding:10px 12px;cursor:pointer;position:relative;transition:all .15s;user-select:none;}
+.team-tile:hover{border-color:var(--blue);}
+.team-tile.sel{border-color:var(--accent);background:rgba(255,107,26,.06);}
+.team-tile.sel::after{content:'✓';position:absolute;top:5px;right:8px;color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:900;}
+.team-tile.maxed:not(.sel){opacity:.35;pointer-events:none;}
+.tile-seed{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;}
+.tile-name{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--text);line-height:1.2;margin-top:2px;}
+.tile-playin{font-size:9px;color:var(--accent2);font-style:italic;margin-top:1px;}
+.tile-conf{font-size:10px;color:var(--muted);font-style:italic;}
+.player-slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;}
+.player-slot{background:var(--card);border:1px solid var(--border);padding:12px;}
+.slot-team{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--accent);letter-spacing:.5px;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.slot-sel{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Lora',serif;font-size:12px;padding:7px 9px;outline:none;cursor:pointer;}
+.slot-sel:focus{border-color:var(--accent);}
+.tb-box{background:linear-gradient(135deg,#0a1528,#0d1820);border:2px solid var(--accent2);padding:22px;}
+.tb-hed{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--accent2);margin-bottom:6px;}
+.tb-desc{font-size:13px;color:rgba(232,234,240,.6);line-height:1.6;margin-bottom:14px;font-style:italic;}
+.tb-input{width:130px;background:rgba(255,255,255,.06);border:1px solid var(--accent2);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;padding:8px 12px;outline:none;text-align:center;}
+.tb-input:focus{background:rgba(255,170,0,.1);}
+.confirm-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+.chip{background:var(--raised);border:1px solid var(--border);padding:4px 12px;font-size:12px;}
+.chip strong{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--accent);font-size:11px;letter-spacing:.5px;margin-right:4px;}
+.lock-banner{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);padding:12px 16px;margin-bottom:16px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:.5px;color:var(--red);text-align:center;display:none;}
+.lock-banner.on{display:block;}
+/* BRACKET */
+#page-bracket{background:var(--bg);}
+.bracket-wrap{padding:20px;overflow-x:auto;}
+.bracket-hed{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;letter-spacing:4px;text-transform:uppercase;text-align:center;margin-bottom:4px;}
+.bracket-sub{font-style:italic;font-size:13px;color:var(--muted);text-align:center;margin-bottom:20px;}
+.region-bracket{margin-bottom:24px;}
+.rb-label{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent2);padding-bottom:8px;border-bottom:1px solid rgba(255,170,0,.25);margin-bottom:10px;}
+.rb-rounds{display:flex;gap:6px;overflow-x:auto;}
+.rb-round{display:flex;flex-direction:column;justify-content:space-around;gap:4px;flex-shrink:0;}
+.b-game{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);min-width:170px;}
+.b-team{display:flex;align-items:center;gap:5px;padding:5px 7px;border-bottom:1px solid rgba(255,255,255,.07);min-height:26px;}
+.b-team:last-child{border-bottom:none;}
+.b-seed{font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,.3);min-width:14px;flex-shrink:0;}
+.b-name{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;color:rgba(255,255,255,.65);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.b-sc{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,.4);min-width:22px;text-align:right;flex-shrink:0;}
+.b-team.W .b-name{color:var(--text);font-weight:700;}
+.b-team.W .b-sc{color:var(--accent2);}
+.b-team.L{opacity:.4;}
+.ff-box{background:rgba(255,170,0,.07);border:1px solid rgba(255,170,0,.3);padding:20px;text-align:center;margin-top:12px;}
+.ff-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--accent2);margin-bottom:12px;}
+.ff-slot{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--accent2);background:rgba(255,170,0,.12);border:1px solid rgba(255,170,0,.4);padding:7px 14px;min-width:110px;}
+/* LEADERBOARD */
+.lb-table{width:100%;border-collapse:collapse;}
+.lb-table th{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:9px 12px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface);}
+.lb-table td{padding:11px 12px;font-size:13px;border-bottom:1px solid rgba(37,45,63,.6);}
+.lb-table tr:hover td{background:rgba(255,255,255,.02);}
+.rank-n{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--muted);}
+.r1 .rank-n{color:var(--accent2);}
+.r2 .rank-n{color:#94a3b8;}
+.r3 .rank-n{color:#a07050;}
+.pts-val{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--accent);}
+/* MY TEAMS */
+.my-team-block{background:var(--card);border:1px solid var(--border);border-left:4px solid var(--accent);padding:18px;margin-bottom:14px;}
+.mth{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+.mt-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;}
+.mt-rank{font-size:12px;font-style:italic;color:var(--muted);margin-top:2px;}
+.mt-pts{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:var(--accent);text-align:right;}
+.mt-pts-l{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);text-align:right;}
+.pst{width:100%;border-collapse:collapse;}
+.pst th{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);background:var(--surface);}
+.pst th:first-child,.pst td:first-child{text-align:left;}
+.pst td{padding:7px 8px;border-bottom:1px solid rgba(37,45,63,.4);text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;}
+.pst td.nm{font-family:'Lora',serif;font-size:12px;text-align:left;}
+.pst td.fp{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--accent);}
+.plink{cursor:pointer;color:var(--blue);text-decoration:underline;text-decoration-style:dotted;}
+.plink:hover{color:var(--accent);}
+/* COMMISSIONER */
+.comm-section{background:var(--card);border:1px solid var(--border);padding:20px;margin-bottom:16px;}
+.comm-section-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--accent2);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.comm-login-screen{max-width:400px;margin:80px auto;text-align:center;padding:0 20px;}
+.ctrl-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(37,45,63,.5);}
+.ctrl-row:last-child{border-bottom:none;}
+.ctrl-lbl{font-size:13px;color:var(--text);}
+.ctrl-sub{font-size:11px;color:var(--muted);font-style:italic;margin-top:2px;}
+.toggle-sw{position:relative;width:44px;height:24px;cursor:pointer;}
+.toggle-sw input{opacity:0;width:0;height:0;}
+.toggle-sl{position:absolute;inset:0;background:var(--dim);transition:.3s;border-radius:24px;}
+.toggle-sl:before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:white;transition:.3s;border-radius:50%;}
+.toggle-sw input:checked+.toggle-sl{background:var(--green);}
+.toggle-sw input:checked+.toggle-sl:before{transform:translateX(20px);}
+.comm-table{width:100%;border-collapse:collapse;font-size:13px;}
+.comm-table th{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--border);background:var(--surface);text-align:left;}
+.comm-table td{padding:8px 10px;border-bottom:1px solid rgba(37,45,63,.4);vertical-align:middle;}
+.comm-table tr:hover td{background:rgba(255,255,255,.02);}
+.edit-pts{width:72px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;padding:4px 6px;outline:none;text-align:center;}
+.edit-pts:focus{border-color:var(--accent);}
+.edit-text{width:160px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Lora',serif;font-size:12px;padding:4px 8px;outline:none;}
+.edit-text:focus{border-color:var(--accent);}
+.comm-ta{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Lora',serif;font-size:14px;padding:10px 12px;outline:none;resize:vertical;min-height:70px;}
+.comm-ta:focus{border-color:var(--accent);}
+.g3-comm{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.stat-box{background:var(--card);border:1px solid var(--border);padding:14px;text-align:center;}
+.stat-box-n{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:var(--accent);line-height:1;}
+.stat-box-l{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}
+/* PLAYER MODAL */
+.gl-table{width:100%;border-collapse:collapse;}
+.gl-table th{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:6px 8px;text-align:center;border-bottom:1px solid var(--border);background:var(--surface);}
+.gl-table th:first-child,.gl-table td:first-child{text-align:left;}
+.gl-table td{padding:7px 8px;border-bottom:1px solid rgba(37,45,63,.4);text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;}
+.gl-table td.fp{color:var(--accent);font-weight:700;font-size:13px;}
+.ps-grid{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.ps-box{flex:1;min-width:70px;text-align:center;background:var(--card);border:1px solid var(--border);padding:8px 6px;}
+.ps-val{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:var(--accent);line-height:1;}
+.ps-lbl{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+/* MODALS */
+.overlay{display:none;position:fixed;inset:0;background:rgba(5,7,12,.8);backdrop-filter:blur(6px);z-index:500;align-items:center;justify-content:center;padding:20px;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--accent);width:680px;max-width:100%;max-height:88vh;overflow-y:auto;animation:mslide .25s ease;}
+@keyframes mslide{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.modal-hd{background:var(--card);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.modal-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;}
+.modal-close:hover{color:var(--text);}
+.modal-bd{padding:20px;}
+/* PICKS EDIT MODAL */
+.picks-modal .modal{width:900px;border-top-color:var(--teal);}
+/* FORMS */
+.fm-group{margin-bottom:14px;}
+.fm-label{display:block;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.fm-input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);font-family:'Lora',serif;font-size:14px;padding:9px 12px;outline:none;transition:border-color .15s;}
+.fm-input:focus{border-color:var(--accent);}
+.fm-hint{font-size:11px;color:var(--muted);font-style:italic;margin-top:3px;}
+/* TOAST */
+#toast{position:fixed;bottom:20px;right:20px;z-index:9999;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--accent);padding:11px 18px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;letter-spacing:.5px;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;max-width:320px;}
+#toast.show{transform:translateY(0);opacity:1;}
+#toast.ok{border-left-color:var(--green);}
+#toast.err{border-left-color:var(--red);}
+@media(max-width:768px){.g2,.g3,.g4,.g3-comm{grid-template-columns:1fr;}.hero-stats{flex-wrap:wrap;}.game-entry-form{grid-template-columns:1fr 1fr;}}
+
+/* BRACKET ADVANCEMENT */
+.b-team.adv-click{cursor:pointer;}
+.b-team.adv-click:hover{background:rgba(255,107,26,.15);}
+.b-team.adv-click:hover .b-name{color:var(--accent);}
+.bracket-adv-hint{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,170,0,.5);text-align:center;margin-bottom:8px;}
+
+/* ANNOUNCEMENT CARDS */
+.ann-card{background:var(--card);border:1px solid var(--border);border-left:4px solid var(--accent2);padding:18px 20px;margin-bottom:12px;}
+.ann-card.pinned{border-left-color:var(--accent);background:rgba(255,107,26,.05);}
+.ann-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;letter-spacing:.5px;margin-bottom:4px;}
+.ann-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:10px;}
+.ann-body{font-size:14px;line-height:1.75;color:var(--text);}
+
+/* MANUAL GAME ENTRY */
+.ge-row{display:grid;grid-template-columns:1fr 60px 60px 1fr 110px 120px auto;gap:6px;align-items:end;background:var(--raised);padding:12px;border:1px solid var(--border);margin-bottom:8px;}
+.ge-col label{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px;}
+.ge-col input,.ge-col select{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Lora',serif;font-size:13px;padding:6px 8px;outline:none;width:100%;}
+.ge-col input:focus,.ge-col select:focus{border-color:var(--accent);}
+.ge-vs{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:var(--dim);text-align:center;padding-top:20px;}
+@media(max-width:900px){.ge-row{grid-template-columns:1fr 1fr 1fr;}}
+.ge-input{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Lora',serif;font-size:12px;padding:5px 8px;outline:none;width:100%;}
+.ge-input:focus{border-color:var(--accent);}
+.ge-score{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;padding:5px;outline:none;width:38px;text-align:center;}
+.ge-score:focus{border-color:var(--accent);}
+.ge-select{background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'Lora',serif;font-size:11px;padding:5px;outline:none;width:100%;}
+</style>
+</head>
+<body>
+
+<div class="announce-bar" id="announce-bar"></div>
+
+<header>
+  <div class="hdr-top">
+    <div class="wordmark" id="logo">BRACKET <span>BOSS</span> <span style="font-size:14px;font-weight:400;color:var(--muted);letter-spacing:1px">2026</span></div>
+    <div class="hdr-right">
+      <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark mode">🌙</button>
+      <button class="auth-btn" id="authBtn" onclick="openAuth()">Sign In</button>
+    </div>
+  </div>
+  <nav id="main-nav">
+    <button class="nav-btn active" onclick="goPage('home')">Home</button>
+    <button class="nav-btn" onclick="goPage('build')">Build Team</button>
+    <button class="nav-btn" onclick="goPage('bracket')">Live Bracket</button>
+    <button class="nav-btn" onclick="goPage('scores')">Live Scores</button>
+    <button class="nav-btn" onclick="goPage('leaderboard')">Leaderboard</button>
+    <button class="nav-btn" onclick="goPage('myteams')">My Teams</button>
+    <button class="nav-btn" onclick="goPage('announcements')">📣 News</button>
+    <button class="nav-btn comm-nav" id="comm-nav-btn" onclick="goPage('commissioner')">⚙ Commissioner</button>
+  </nav>
+</header>
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <div class="hero-eyebrow">2026 NCAA Men's Basketball Tournament</div>
+    <div class="hero-title"><em>Fantasy</em>March Madness</div>
+    <div class="hero-sub">Pick teams &amp; players · Score live stats · Win the bracket</div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-n" id="hs-t">68</div><div class="hero-stat-l">Teams</div></div>
+      <div class="hero-stat"><div class="hero-stat-n" id="hs-u">0</div><div class="hero-stat-l">Users</div></div>
+      <div class="hero-stat"><div class="hero-stat-n" id="hs-e">0</div><div class="hero-stat-l">Entries</div></div>
+      <div class="hero-stat"><div class="hero-stat-n">3/19</div><div class="hero-stat-l">Lock 12:15 PM ET</div></div>
+    </div>
+  </div>
+  <div class="wrap">
+
+    <!-- RULES COLLAPSIBLE -->
+    <div style="margin-bottom:20px">
+      <div class="rules-toggle" onclick="toggleRules()" id="rules-toggle-row">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">📖</span>
+          <div class="rules-toggle-hed">How to Play — Rules &amp; Scoring</div>
+        </div>
+        <div class="rules-toggle-icon" id="rules-icon">▼</div>
+      </div>
+      <div class="rules-body" id="rules-body">
+        <div class="rules-step">
+          <div class="rules-step-n">1</div>
+          <div class="rules-step-text"><strong>Create an account</strong> with your email. Your email auto-generates your team name — jake@gmail.com becomes "Jake's Team". You can create multiple teams.</div>
+        </div>
+        <div class="rules-step">
+          <div class="rules-step-n">2</div>
+          <div class="rules-step-text"><strong>Pick 16 teams</strong> from all 68 NCAA Tournament teams across four regions (East, West, South, Midwest). You must select exactly 16. Play-in game teams are available to pick — their stats count from the first tip-off.</div>
+        </div>
+        <div class="rules-step">
+          <div class="rules-step-n">3</div>
+          <div class="rules-step-text"><strong>Pick 1 player per team.</strong> That player earns you fantasy points based on their real stats every time their team plays in the tournament. If their team gets eliminated, they stop scoring — but all points already earned stay.</div>
+        </div>
+        <div class="rules-step">
+          <div class="rules-step-n">4</div>
+          <div class="rules-step-text"><strong>Fantasy scoring:</strong> <span style="color:var(--green)">+1 point</span> for every Point, Assist, Rebound, Block, and Steal your player records. <span style="color:var(--red)">−1 point</span> for every Foul and Turnover. Points accumulate across the entire tournament.</div>
+        </div>
+        <div class="rules-step">
+          <div class="rules-step-n">5</div>
+          <div class="rules-step-text"><strong>Tiebreaker:</strong> When locking in your team you'll guess the total combined points scored in the <strong>April 6 National Championship game</strong>. If two entries tie on fantasy points, whoever guessed closest wins.</div>
+        </div>
+        <div class="rules-step">
+          <div class="rules-step-n">⏰</div>
+          <div class="rules-step-text"><strong>Picks lock at 12:15 PM ET on Thursday March 19</strong> — tip-off of the first Round of 64 game (Ohio State vs TCU). You can update your <em>player picks</em> any time before that deadline, but your 16 teams are locked once submitted. Play-in games on March 17–18 count, so pick wisely!</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="g2">
+      <div>
+        <div class="sec-head"><div class="sec-title">Live Games</div><div class="live-badge"><div class="live-dot"></div>ESPN</div></div>
+        <div id="home-games"><div class="card" style="text-align:center;padding:24px;color:var(--muted);font-style:italic">Loading…</div></div>
+      </div>
+      <div>
+        <div class="sec-head"><div class="sec-title">Scoring</div></div>
+        <div class="card" style="margin-bottom:12px">
+          <div class="stags"><span class="stag p">+1 PTS</span><span class="stag p">+1 AST</span><span class="stag p">+1 REB</span><span class="stag p">+1 BLK</span><span class="stag p">+1 STL</span><span class="stag n">−1 FOUL</span><span class="stag n">−1 TO</span></div>
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent2);margin-bottom:4px">🏆 Tiebreaker</div>
+            <div style="font-size:12px;color:var(--muted);font-style:italic;line-height:1.6" class="tb-desc-text">Closest guess to total combined points in the April 6 Championship breaks ties.</div>
+          </div>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);font-style:italic" class="lock-note-text">
+            Play-in games <strong style="color:var(--accent)">DO</strong> count. Picks lock <strong style="color:var(--accent)">12:15 PM ET, March 19</strong>.
+          </div>
+        </div>
+        <div class="sec-head"><div class="sec-title">Top Teams</div></div>
+        <div style="border:1px solid var(--border);overflow:hidden">
+          <table class="lb-table"><thead><tr><th>#</th><th>Team</th><th>Pts</th></tr></thead>
+          <tbody id="home-lb"><tr><td colspan="3" style="text-align:center;padding:14px;color:var(--muted);font-style:italic">No entries yet</td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BUILD -->
+<div id="page-build" class="page">
+  <div class="wrap">
+    <div class="sec-head"><div class="sec-title">Build Your Team</div><div style="font-style:italic;font-size:12px;color:var(--muted)">All 68 teams · 1 player each · lock in before 12:15 PM ET March 19</div></div>
+    <div class="lock-banner" id="lock-banner">🔒 Picks are locked — deadline passed (12:15 PM ET March 19)</div>
+    <div class="wizard-bar">
+      <div class="wiz-step active" id="ws-1" onclick="goWiz(1)"><div class="wiz-step-num">01</div><div class="wiz-step-lbl">Select Teams</div></div>
+      <div class="wiz-step" id="ws-2" onclick="goWiz(2)"><div class="wiz-step-num">02</div><div class="wiz-step-lbl">Pick Players</div></div>
+      <div class="wiz-step" id="ws-3" onclick="goWiz(3)"><div class="wiz-step-num">03</div><div class="wiz-step-lbl">Tiebreaker</div></div>
+      <div class="wiz-step" id="ws-4" onclick="goWiz(4)"><div class="wiz-step-num">04</div><div class="wiz-step-lbl">Confirm</div></div>
+    </div>
+    <div id="wiz-1" class="wizard-panel active">
+      <div class="sel-bar">
+        <div><div class="sel-num" id="sel-n">0</div><div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)">/ 16 teams</div></div>
+        <div class="sel-track" style="flex:1"><div class="sel-fill" id="sel-fill" style="width:0%"></div></div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase"><span id="sel-rem">16</span> remaining</div>
+      </div>
+      <div id="teams-grid"></div>
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="btn btn-primary" id="to-wiz2" onclick="goWiz(2)" disabled>Next: Pick Players →</button>
+        <button class="btn btn-ghost" onclick="clearSel()">Clear All</button>
+      </div>
+    </div>
+    <div id="wiz-2" class="wizard-panel">
+      <p style="font-size:13px;color:var(--muted);font-style:italic;margin-bottom:16px;line-height:1.6">Choose one player per team. Player picks can be updated until 12:15 PM ET March 19.</p>
+      <div id="player-slots" class="player-slots"></div>
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="btn btn-ghost" onclick="goWiz(1)">← Back</button>
+        <button class="btn btn-primary" onclick="goWiz(3)">Next: Tiebreaker →</button>
+      </div>
+    </div>
+    <div id="wiz-3" class="wizard-panel">
+      <div class="tb-box">
+        <div class="tb-hed">🏆 Championship Tiebreaker</div>
+        <div class="tb-desc">If two fantasy teams tie, the closest guess to the actual combined score in the <strong style="color:var(--accent2)">April 6 National Championship</strong> wins. Historic average: ~145 combined pts.</div>
+        <div style="display:flex;align-items:center;gap:14px">
+          <input type="number" class="tb-input" id="tb-guess" min="80" max="300" placeholder="145"/>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:1px;color:rgba(232,234,240,.5);text-transform:uppercase;line-height:1.5">Total combined<br>championship points</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="btn btn-ghost" onclick="goWiz(2)">← Back</button>
+        <button class="btn btn-primary" onclick="goWiz(4)">Next: Confirm →</button>
+      </div>
+    </div>
+    <div id="wiz-4" class="wizard-panel">
+      <div class="card" style="margin-bottom:16px">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;letter-spacing:1px;margin-bottom:14px">TEAM DETAILS</div>
+        <div class="fm-group">
+          <label class="fm-label">Team Name</label>
+          <input type="text" class="fm-input" id="team-name-inp" style="max-width:400px" placeholder="Auto-generated from email"/>
+          <div class="fm-hint">Leave blank to auto-name (e.g. jake@gmail → Jake's Team)</div>
+        </div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-top:14px;margin-bottom:8px">Your 16 Picks</div>
+        <div id="confirm-chips" class="confirm-chips"></div>
+        <div id="confirm-tb" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;font-style:italic;color:var(--muted)"></div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" onclick="goWiz(3)">← Back</button>
+        <button class="btn btn-primary" id="lock-btn" onclick="lockTeam()">🔒 Lock In My Team</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BRACKET -->
+<div id="page-bracket" class="page">
+  <div class="bracket-wrap">
+    <div class="bracket-hed">2026 NCAA TOURNAMENT BRACKET</div>
+    <div class="bracket-sub">Winners auto-fill from ESPN results after March 17 · No results pre-filled</div>
+    <div id="bracket-adv-hint" class="bracket-adv-hint" style="display:none">⚙ Commissioner Mode — Click any team bubble to advance them</div>
+    <div id="bracket-content"><div style="text-align:center;padding:40px;color:var(--muted);font-style:italic">Loading bracket…</div></div>
+    <div style="text-align:center;margin-top:14px;display:flex;align-items:center;justify-content:center;gap:10px">
+      <button class="btn btn-ghost btn-sm" onclick="renderBracket()">↺ Refresh</button>
+      <span id="bracket-ts" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)">Not yet loaded</span>
+    </div>
+  </div>
+</div>
+
+<!-- SCORES -->
+<div id="page-scores" class="page">
+  <div class="wrap">
+    <div class="sec-head"><div class="sec-title">Live Scores &amp; Schedule</div><div class="live-badge"><div class="live-dot"></div>Auto-refresh 45s</div></div>
+    <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap" id="score-tab-bar">
+      <button class="btn btn-ghost btn-sm" id="st-all"      onclick="setScoreTab('all')">All Games</button>
+      <button class="btn btn-ghost btn-sm" id="st-live"     onclick="setScoreTab('live')">🔴 Live</button>
+      <button class="btn btn-ghost btn-sm" id="st-today"    onclick="setScoreTab('today')">Today</button>
+      <button class="btn btn-ghost btn-sm" id="st-upcoming" onclick="setScoreTab('upcoming')">Upcoming</button>
+      <button class="btn btn-ghost btn-sm" id="st-final"    onclick="setScoreTab('final')">Final</button>
+      <button class="btn btn-ghost btn-sm" id="st-mine"     onclick="setScoreTab('mine')">⭐ My Players</button>
+    </div>
+    <div id="games-container"><div class="card" style="text-align:center;padding:28px;color:var(--muted);font-style:italic">Loading games…</div></div>
+    <div id="manual-games-scores"></div>
+  </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div id="page-leaderboard" class="page">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-title">Leaderboard</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" id="lb-all-btn" onclick="switchLB('all')">All</button>
+        <button class="btn btn-ghost btn-sm" id="lb-mine-btn" onclick="switchLB('mine')">Mine</button>
+      </div>
+    </div>
+    <div style="margin-bottom:14px"><div class="stags"><span class="stag p">+1 PTS</span><span class="stag p">+1 AST</span><span class="stag p">+1 REB</span><span class="stag p">+1 BLK</span><span class="stag p">+1 STL</span><span class="stag n">−1 FOUL</span><span class="stag n">−1 TO</span><span class="stag" style="border-color:var(--accent2);color:var(--accent2)">🏆 TB: closest champ pts</span></div></div>
+    <div id="lb-hidden-msg" style="display:none;text-align:center;padding:40px;color:var(--muted);font-style:italic">Leaderboard hidden — commissioner will reveal when ready</div>
+    <div id="lb-wrap" style="overflow-x:auto;border:1px solid var(--border)">
+      <table class="lb-table">
+        <thead><tr><th style="width:40px">#</th><th>Team</th><th>Owner</th><th>Players</th><th>Fantasy Pts</th><th>Tiebreaker</th></tr></thead>
+        <tbody id="lb-body"><tr><td colspan="6" style="text-align:center;padding:28px;color:var(--muted);font-style:italic">No entries yet</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MY TEAMS -->
+<div id="page-myteams" class="page">
+  <div class="wrap">
+    <div class="sec-head"><div class="sec-title">My Teams</div><button class="btn btn-primary btn-sm" onclick="goPage('build')">+ New Team</button></div>
+    <div id="myteams-wrap">
+      <div class="card" style="text-align:center;padding:60px">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;margin-bottom:8px">NO TEAMS YET</div>
+        <button class="btn btn-primary" onclick="openAuth()">Sign In / Register</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ANNOUNCEMENTS PAGE -->
+<div id="page-announcements" class="page">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-title">📣 Announcements</div>
+      <div style="font-size:12px;color:var(--muted);font-style:italic">Messages from the Commissioner</div>
+    </div>
+    <div id="announcements-feed">
+      <div class="card" style="text-align:center;padding:40px;color:var(--muted);font-style:italic">No announcements yet — check back soon!</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMMISSIONER -->
+<div id="page-commissioner" class="page">
+  <div class="wrap">
+    <div id="comm-login-screen" class="comm-login-screen">
+      <div style="font-size:40px;margin-bottom:12px">🔐</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;letter-spacing:2px;margin-bottom:6px">COMMISSIONER MODE</div>
+      <p style="color:var(--muted);font-size:13px;font-style:italic;margin-bottom:24px">Admin access — edit any data, fix errors, control the game</p>
+      <div class="fm-group"><input type="password" class="fm-input" id="comm-pw-input" placeholder="Password" style="text-align:center;font-size:16px" onkeydown="if(event.key==='Enter')commLogin()"/></div>
+      <button class="btn btn-primary" style="width:100%;font-size:15px;padding:12px;margin-top:6px" onclick="commLogin()">Unlock →</button>
+      <div style="margin-top:16px;font-size:11px;color:var(--muted);font-style:italic">Password set by commissioner</div>
+    </div>
+    <div id="comm-dashboard" style="display:none">
+      <div class="sec-head">
+        <div class="sec-title">⚙ Commissioner Dashboard</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green)">● ACTIVE</span>
+          <button class="btn btn-ghost btn-sm" onclick="commLogout()">Lock</button>
+        </div>
+      </div>
+      <div class="g3-comm" style="margin-bottom:16px">
+        <div class="stat-box"><div class="stat-box-n" id="cs-entries">0</div><div class="stat-box-l">Total Entries</div></div>
+        <div class="stat-box"><div class="stat-box-n" id="cs-users">0</div><div class="stat-box-l">Users</div></div>
+        <div class="stat-box"><div class="stat-box-n" id="cs-lock" style="color:var(--green)">OPEN</div><div class="stat-box-l">Picks Status</div></div>
+      </div>
+      <!-- CONTROLS -->
+      <div class="comm-section">
+        <div class="comm-section-title">🎮 Controls</div>
+        <div class="ctrl-row">
+          <div><div class="ctrl-lbl">Force Lock All Picks</div><div class="ctrl-sub">Override auto-lock — immediately prevent all new entries/changes</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="ctrl-lock" onchange="applyCtrl('picksLocked',this.checked)"><span class="toggle-sl"></span></label>
+        </div>
+        <div class="ctrl-row">
+          <div><div class="ctrl-lbl">Show Leaderboard</div><div class="ctrl-sub">Hide from users until you're ready to reveal</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="ctrl-show-lb" checked onchange="applyCtrl('showLeaderboard',this.checked)"><span class="toggle-sl"></span></label>
+        </div>
+        <div class="ctrl-row">
+          <div><div class="ctrl-lbl">Auto-Scoring (ESPN)</div><div class="ctrl-sub">Enable after March 19 — pulls live box scores and updates points automatically</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="ctrl-auto" onchange="applyCtrl('autoScoring',this.checked)"><span class="toggle-sl"></span></label>
+        </div>
+        <div class="ctrl-row">
+          <div><div class="ctrl-lbl">Tournament Live Mode</div><div class="ctrl-sub">Shows live indicator across site</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="ctrl-live" onchange="applyCtrl('tournamentLive',this.checked)"><span class="toggle-sl"></span></label>
+        </div>
+      </div>
+      <!-- ANNOUNCEMENT -->
+      <div class="comm-section">
+        <div class="comm-section-title">📢 Announcement Banner</div>
+        <p style="font-size:12px;color:var(--muted);font-style:italic;margin-bottom:10px">Short banner shown at the top of every page for all users. Leave blank to hide.</p>
+        <textarea class="comm-ta" id="announce-text" placeholder="e.g. 🏀 Picks lock in 1 hour!"></textarea>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-primary btn-sm" onclick="saveAnnouncement()">Post Banner</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearAnnouncement()">Clear</button>
+        </div>
+      </div>
+
+      <!-- BULLETIN BOARD POSTS -->
+      <div class="comm-section">
+        <div class="comm-section-title">📣 Post to Announcements Page</div>
+        <p style="font-size:12px;color:var(--muted);font-style:italic;margin-bottom:12px">Full messages that appear on the Announcements page. Great for round recaps, scoring updates, rule reminders.</p>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
+          <div>
+            <label class="fm-label">Title</label>
+            <input type="text" class="fm-input" id="ann-post-title" placeholder="e.g. Round of 64 is complete!" />
+          </div>
+          <div>
+            <label class="fm-label">Message</label>
+            <textarea class="comm-ta" id="ann-post-body" placeholder="Write your message here… Use line breaks for paragraphs."></textarea>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--muted)">
+              <input type="checkbox" id="ann-post-pin" />
+              <span>📌 Pin this post (shows at top)</span>
+            </label>
+            <button class="btn btn-primary btn-sm" onclick="postAnnouncement()">Post →</button>
+          </div>
+        </div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Existing Posts</div>
+        <div id="comm-ann-list"><div style="color:var(--muted);font-size:12px;font-style:italic">No posts yet</div></div>
+      </div>
+
+      <!-- MANUAL GAME ENTRY -->
+      <div class="comm-section">
+        <div class="comm-section-title">🏀 Manual Game Entry</div>
+        <p style="font-size:12px;color:var(--muted);font-style:italic;margin-bottom:14px">Add games manually — they show up in the Live Scores page in the same style as ESPN games. Perfect for when ESPN data is missing or wrong.</p>
+        <!-- Add new game form -->
+        <div style="background:var(--raised);border:1px solid var(--border);padding:14px;margin-bottom:14px">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent2);margin-bottom:10px">Add New Game</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <div>
+              <label class="fm-label">Team 1 Name</label>
+              <input type="text" class="fm-input" id="mg-t1" placeholder="e.g. Duke" />
+            </div>
+            <div>
+              <label class="fm-label">Team 2 Name</label>
+              <input type="text" class="fm-input" id="mg-t2" placeholder="e.g. Ohio State" />
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:60px 60px 1fr 1fr 1fr;gap:8px;align-items:end;margin-bottom:10px">
+            <div>
+              <label class="fm-label">Score 1</label>
+              <input type="number" class="fm-input" id="mg-s1" placeholder="72" style="padding:8px;" />
+            </div>
+            <div>
+              <label class="fm-label">Score 2</label>
+              <input type="number" class="fm-input" id="mg-s2" placeholder="68" style="padding:8px;" />
+            </div>
+            <div>
+              <label class="fm-label">Status</label>
+              <select class="fm-input" id="mg-status" style="padding:8px;">
+                <option value="pre">Upcoming</option>
+                <option value="in">🔴 Live Now</option>
+                <option value="post">Final</option>
+              </select>
+            </div>
+            <div>
+              <label class="fm-label">Time / Date</label>
+              <input type="text" class="fm-input" id="mg-time" placeholder="3/19 12:15 PM ET" />
+            </div>
+            <div>
+              <label class="fm-label">Round Label</label>
+              <input type="text" class="fm-input" id="mg-round" placeholder="Round of 64" />
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="addManualGame()">+ Add Game</button>
+        </div>
+        <!-- Existing games list -->
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Existing Manual Games (edit inline)</div>
+        <div id="manual-games-list"><div style="color:var(--muted);font-size:12px;font-style:italic;padding:8px 0">No games entered yet</div></div>
+      </div>
+      <!-- MASTER ENTRY EDITOR -->
+      <div class="comm-section">
+        <div class="comm-section-title">📋 All Entries — Edit Anything</div>
+        <p style="font-size:12px;color:var(--muted);font-style:italic;margin-bottom:14px">Edit team names, point overrides, adjustments, and tiebreakers inline. Save row-by-row or all at once. Like a gradebook — direct overwrite.</p>
+        <div style="overflow-x:auto">
+          <table class="comm-table">
+            <thead><tr><th>#</th><th>Team Name</th><th>Owner</th><th>Base Pts</th><th>+/− Adj</th><th>Total Pts</th><th>TB Guess</th><th>Actions</th></tr></thead>
+            <tbody id="comm-entries-body"><tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted);font-style:italic">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="saveAllEntries()">💾 Save All Changes</button>
+          <button class="btn btn-ghost btn-sm" onclick="commRecalcAll()">♻ Recalculate All from Stats</button>
+        </div>
+      </div>
+      <!-- PLAYER STATS OVERRIDE -->
+      <div class="comm-section">
+        <div class="comm-section-title">📊 Player Stats Override</div>
+        <p style="font-size:12px;color:var(--muted);font-style:italic;margin-bottom:12px">Manually set cumulative tournament stats for any player. Hit Load to prefill current values, then Save to apply.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px">
+          <div><label class="fm-label">Player Name (exact)</label><input type="text" class="fm-input" id="stat-pname" placeholder="e.g. Cameron Boozer" style="width:220px"/></div>
+          <div><label class="fm-label">PTS</label><input type="number" class="edit-pts" id="s-pts" value="0"/></div>
+          <div><label class="fm-label">REB</label><input type="number" class="edit-pts" id="s-reb" value="0"/></div>
+          <div><label class="fm-label">AST</label><input type="number" class="edit-pts" id="s-ast" value="0"/></div>
+          <div><label class="fm-label">STL</label><input type="number" class="edit-pts" id="s-stl" value="0"/></div>
+          <div><label class="fm-label">BLK</label><input type="number" class="edit-pts" id="s-blk" value="0"/></div>
+          <div><label class="fm-label">TO</label><input type="number" class="edit-pts" id="s-to" value="0"/></div>
+          <div><label class="fm-label">FOUL</label><input type="number" class="edit-pts" id="s-foul" value="0"/></div>
+          <div><label class="fm-label">Games</label><input type="number" class="edit-pts" id="s-gp" value="0"/></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="commLoadStats()">Load Current</button>
+          <button class="btn btn-primary btn-sm" onclick="commSaveStats()">Save Stats</button>
+        </div>
+        <div id="stat-result" style="margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)"></div>
+      </div>
+      <!-- SCORING CONTROLS -->
+      <div class="comm-section">
+        <div class="comm-section-title">🔄 Scoring Controls</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <button class="btn btn-primary btn-sm" onclick="commForceRefresh()">↺ Force ESPN Refresh</button>
+          <button class="btn btn-ghost btn-sm" onclick="commRecalcAll()">♻ Recalc All Points</button>
+          <button class="btn btn-danger btn-sm" onclick="commResetStats()">⚠ Reset All Stats to 0</button>
+        </div>
+        <div id="refresh-status" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)">Last ESPN refresh: never</div>
+      </div>
+      <!-- EMAIL -->
+      <div class="comm-section">
+        <div class="comm-section-title">📧 Email Notifications</div>
+
+        <!-- EmailJS Config -->
+        <div style="background:var(--raised);border:1px solid var(--border);padding:14px;margin-bottom:16px">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent2);margin-bottom:10px">EmailJS Setup</div>
+          <p style="font-size:11px;color:var(--muted);font-style:italic;margin-bottom:10px;line-height:1.6">
+            1. Go to <strong style="color:var(--text)">emailjs.com</strong> → free account → Connect Gmail<br>
+            2. Create an Email Template — use variables: <code style="color:var(--accent2)">{{to_name}}</code> <code style="color:var(--accent2)">{{round_name}}</code> <code style="color:var(--accent2)">{{leaderboard}}</code> <code style="color:var(--accent2)">{{your_rank}}</code> <code style="color:var(--accent2)">{{your_pts}}</code> <code style="color:var(--accent2)">{{site_url}}</code><br>
+            3. Paste your IDs below and hit Save
+          </p>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+            <div>
+              <label class="fm-label">Public Key</label>
+              <input type="text" class="fm-input" id="ej-pub" placeholder="user_xxxxxxxxxxxx" style="font-family:'JetBrains Mono',monospace;font-size:11px"/>
+            </div>
+            <div>
+              <label class="fm-label">Service ID</label>
+              <input type="text" class="fm-input" id="ej-svc" placeholder="service_xxxxxxx" style="font-family:'JetBrains Mono',monospace;font-size:11px"/>
+            </div>
+            <div>
+              <label class="fm-label">Template ID</label>
+              <input type="text" class="fm-input" id="ej-tmpl" placeholder="template_xxxxxxx" style="font-family:'JetBrains Mono',monospace;font-size:11px"/>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn btn-primary btn-sm" onclick="saveEmailConfig()">💾 Save EmailJS Config</button>
+            <button class="btn btn-ghost btn-sm" onclick="testEmailSelf()">📧 Send Test to My Email</button>
+            <span id="ej-config-status" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)"></span>
+          </div>
+        </div>
+
+        <!-- Send buttons -->
+        <div style="margin-bottom:10px">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Send Round Update</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="previewAndSend('Round of 32')">📧 After R32</button>
+            <button class="btn btn-primary btn-sm" onclick="previewAndSend('Sweet 16')">📧 After Sweet 16</button>
+            <button class="btn btn-primary btn-sm" onclick="previewAndSend('Elite Eight')">📧 After Elite 8</button>
+            <button class="btn btn-primary btn-sm" onclick="previewAndSend('Final Four')">📧 Final Four</button>
+            <button class="btn btn-primary btn-sm" onclick="previewAndSend('Championship')">📧 Championship</button>
+          </div>
+        </div>
+        <div id="email-status" style="font-size:12px;color:var(--muted);font-style:italic;margin-bottom:12px"></div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Registered Emails (<span id="email-count">0</span>)</div>
+        <div id="email-list" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);line-height:2"></div>
+      </div>
+      <!-- USERS -->
+      <div class="comm-section">
+        <div class="comm-section-title">👥 Users</div>
+        <div id="comm-users-list"></div>
+      </div>
+      <!-- STATIC TEXT OVERRIDES -->
+      <div class="comm-section">
+        <div class="comm-section-title">✏️ Site Text Overrides</div>
+        <p style="font-size:12px;color:var(--muted);font-style:italic;margin-bottom:16px;line-height:1.6">
+          Change any static text on the site — hero title, rules, labels, descriptions. Overrides persist through page refreshes. Reset individual fields or wipe all overrides at once.
+        </p>
+        <div id="text-override-list"></div>
+        <div style="display:flex;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+          <button class="btn btn-primary btn-sm" onclick="saveTextOverrides()">💾 Save All Overrides</button>
+          <button class="btn btn-danger btn-sm" onclick="resetAllTextOverrides()">↺ Reset All to Default</button>
+        </div>
+        <div id="override-save-status" style="margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)"></div>
+      </div>
+
+      <!-- CHANGE PASSWORD -->
+      <div class="comm-section">
+        <div class="comm-section-title">🔑 Change Password</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="password" class="fm-input" id="new-comm-pw" placeholder="New password (min 4 chars)" style="max-width:260px"/>
+          <button class="btn btn-primary btn-sm" onclick="changeCommPw()">Update</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="overlay" id="auth-modal">
+  <div class="modal" style="width:420px">
+    <div class="modal-hd">
+      <div><div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:1px">JOIN THE GAME</div><div style="font-size:12px;color:var(--muted);font-style:italic;margin-top:2px">Sign in or create an account</div></div>
+      <button class="modal-close" onclick="closeAuth()">✕</button>
+    </div>
+    <div class="modal-bd">
+      <div class="fm-group">
+        <label class="fm-label">Email Address</label>
+        <input type="email" class="fm-input" id="auth-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doAuth()"/>
+        <div class="fm-hint">jake@gmail.com → "Jake's Team", "Jake's Team 2"…</div>
+      </div>
+      <div class="fm-group">
+        <label class="fm-label">Password</label>
+        <input type="password" class="fm-input" id="auth-pw" placeholder="Min. 4 characters" onkeydown="if(event.key==='Enter')doAuth()"/>
+      </div>
+      <button class="btn btn-primary" style="width:100%;font-size:15px;padding:12px" onclick="doAuth()">Sign In / Register →</button>
+    </div>
+  </div>
+</div>
+
+<!-- PLAYER MODAL -->
+<div class="overlay" id="player-modal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div><div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;letter-spacing:1px" id="pm-name">Player</div><div style="font-size:12px;color:var(--muted);font-style:italic" id="pm-team">Team · 2026</div></div>
+      <button class="modal-close" onclick="closeModal('player-modal')">✕</button>
+    </div>
+    <div class="modal-bd">
+      <div class="ps-grid" id="pm-stats"></div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Game Log</div>
+      <table class="gl-table">
+        <thead><tr><th>Opponent</th><th>Round</th><th>Date</th><th>PTS</th><th>REB</th><th>AST</th><th>STL</th><th>BLK</th><th>TO</th><th>PF</th><th>FP</th></tr></thead>
+        <tbody id="pm-log"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- PICKS EDIT MODAL -->
+<div class="overlay picks-modal" id="picks-edit-modal">
+  <div class="modal" style="width:900px">
+    <div class="modal-hd">
+      <div><div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:1px" id="pe-title">Edit Picks</div><div style="font-size:12px;color:var(--teal);font-style:italic">Changes save immediately</div></div>
+      <button class="modal-close" onclick="closeModal('picks-edit-modal')">✕</button>
+    </div>
+    <div class="modal-bd">
+      <div id="pe-slots" class="player-slots"></div>
+      <div style="margin-top:16px;display:flex;gap:10px">
+        <button class="btn btn-primary" onclick="savePicksEdit()">💾 Save Player Picks</button>
+        <button class="btn btn-ghost" onclick="closeModal('picks-edit-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EMAIL PREVIEW MODAL -->
+<div class="overlay" id="email-preview-modal">
+  <div class="modal" style="width:680px;border-top-color:var(--teal)">
+    <div class="modal-hd">
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:1px">Email Preview</div>
+        <div style="font-size:12px;color:var(--muted);font-style:italic;margin-top:2px" id="ep-meta">Preview before sending</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('email-preview-modal')">✕</button>
+    </div>
+    <div class="modal-bd">
+      <!-- Preview rendered email -->
+      <div style="background:white;border:1px solid var(--border);border-radius:4px;padding:0;margin-bottom:16px;overflow:hidden">
+        <div style="background:#0b0e14;padding:20px;text-align:center">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;letter-spacing:4px;color:white">BRACKET <span style="color:#ff6b1a">BOSS</span></div>
+          <div style="font-family:sans-serif;font-size:12px;color:rgba(255,255,255,.5);margin-top:4px">2026 NCAA Tournament Fantasy</div>
+        </div>
+        <div style="padding:24px;font-family:Georgia,serif;color:#1a1a1a">
+          <div style="font-size:22px;font-weight:bold;margin-bottom:8px;color:#ff6b1a" id="ep-round-title">Round Complete!</div>
+          <div style="font-size:14px;line-height:1.7;margin-bottom:20px" id="ep-greeting">Hi there,</div>
+          <div style="background:#f5f5f5;border-left:4px solid #ff6b1a;padding:16px;margin-bottom:20px">
+            <div style="font-size:11px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:#666;margin-bottom:10px">YOUR STANDING</div>
+            <div id="ep-your-standing" style="font-size:18px;font-weight:bold"></div>
+          </div>
+          <div style="margin-bottom:20px">
+            <div style="font-size:11px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:#666;margin-bottom:10px">TOP 10 LEADERBOARD</div>
+            <div id="ep-leaderboard" style="font-size:13px;line-height:2"></div>
+          </div>
+          <div style="text-align:center;margin-top:24px">
+            <a id="ep-link" href="#" style="background:#ff6b1a;color:white;padding:12px 28px;text-decoration:none;font-family:sans-serif;font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase">View Full Leaderboard →</a>
+          </div>
+          <div style="margin-top:24px;font-size:11px;color:#999;text-align:center;border-top:1px solid #eee;padding-top:16px">
+            You're receiving this because you joined Bracket Boss 2026.<br>
+            <span id="ep-footer-note"></span>
+          </div>
+        </div>
+      </div>
+      <!-- Actions -->
+      <div style="background:var(--raised);border:1px solid var(--border);padding:14px;margin-bottom:14px">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Send Options</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-ghost btn-sm" id="ep-test-btn" onclick="sendTestEmail()">📧 Send Test to My Email Only</button>
+          <button class="btn btn-primary" id="ep-send-btn" onclick="sendEmailBlast()">🚀 Send to All <span id="ep-count">0</span> Users</button>
+          <button class="btn btn-ghost btn-sm" onclick="closeModal('email-preview-modal')">Cancel</button>
+        </div>
+        <div id="ep-send-status" style="margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast">Saved!</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// ROSTERS  (all 68 teams from Excel)
+// ═══════════════════════════════════════════════════════
+const ROSTERS = {
+  "Duke":["Cameron Boozer","Cayden Boozer","Maliq Brown","Isaiah Evans","Caleb Foster","Darren Harris","Nikolas Khamenia","Patrick Ngongba II","Dame Sarr","Jack Scott","Cameron Sheffield","Ifeanyi Ufochukwu","Sebastian Wilkins"],
+  "Siena":["Antonio Chandler","Mosi Clayton","Brendan Coyle","Gavin Doty","Reid Ducharme","Francis Folefac","Tasman Goodrick","Isaiah Henderson","Marcus Jackson","Christian Jones","Tajae Jones","Riley Mulvey","Danny Murray","Owen Schlager","Justice Shoats","Chris Torres"],
+  "Ohio State":["Amare Bynum","Taison Chatman","Gabe Cupps","Mathieu Grujicic","Myles Herro","Puff Johnson","John Mobley Jr.","Braylen Nash","Ivan Njegovan","Brandon Noel","Josh Ojianwuna","Devin Royal","Bruce Thornton","Christoph Tilly","Colin White"],
+  "TCU":["Malick Diallo","Xavier Edmonds","Kayden Edwards","Brock Harding","RJ Jones","Liutauras Lelevicius","Drew McElroy","Jayden Pierre","Jace Posey","David Punch","Micah Robinson","Vianney Salatchoum","Ashton Simmons","Adam Stewart","Trey Stuart","Tanner Toolson"],
+  "St. John's":["Dylan Darling","Zuby Ejiofor","Bryce Hopkins","Sadiku Ibine Ayo","Ian Jackson","Fotis Konstantinidis","Lefteris Liotopoulos","Dillon Mitchell","Kelvin Odih","Casper Pohto","Ruben Prey","Joson Sanon","Oziyah Sellers","Imran Suljanovic","Handje Tamba"],
+  "Northern Iowa":["Leon Bond III","Redek Born","Trey Campbell","Cade Courbat","Chase Courbat","Ismaël Diouf","Marino Dubravcic","Will Hornseth","Geon Hutchins","Hunter Jacobson","Kyle Pock","Ben Schwieger","Tristan Smith","RJ Taylor","Levi Valdo","Max Weisbrod","Jalen Wilson"],
+  "Kansas":["Corbin Allen","Flory Bidunga","Samis Calderon","Melvin Council Jr.","Justin Cross","Jayden Dawson","Wilder Evers","Elmarko Jackson","Paul Mbiya","Jamari McDowell","Nginyu Ngala","Darryn Peterson","Kohl Rosario","Will Thengvall","Bryson Tiller","Tre White"],
+  "Cal Baptist":["OJ Blankson","Monty Bowser","Rene D'Amelio","Miles Daniels","Dominique Daniels Jr.","Jalen Dollar","Nate Garcia","Jonathan Griman","Bradey Henige","Jayden Jackson","Devon Malcolm","Chase Mayo Harmon","Jordan Muller","Thomas Ndong","Martel Williams"],
+  "Louisville":["Mikel Brown Jr.","Mouhamed Camara","Ryan Conwell","Sananda Fru","J'Vonne Hadley","Will Hanke","London Johnson","Aly Khalifa","Spencer Legg","Isaac McKneely","Kasean Pryor","Kobe Rodgers","Khani Rooths","Cole Sherman","Adrian Wooley","Vangelis Zougris"],
+  "South Florida":["Tristan Beckford","CJ Brown","Xavier Brown","Daimion Collins","Wes Enis","De'Ante Green","Devin Haid","Gavin Hightower","Isaiah Jones","Izaiyah Nelson","Onyx Nnani","Adriel Nyorha","Josh Omojafo","Joseph Pinion","Caleb Sanders"],
+  "Michigan State":["Coen Carr","Carson Cooper","Jeremy Fears Jr.","Trey Fort","Kaleb Glenn","Jaxon Kohler","Jesse McCulloch","Nick Sanders","Jordan Scott","Kur Teng","Divine Ugochukwu","Brennan Walton","Colin Walton","Cam Ward","Denham Wojcik"],
+  "North Dakota St.":["Treyson Anderson","Trevian Carson","Dom Clay","Noah Feddersen","Max Majerle","Riley Massey","Riley Saunders","Caleb Schoenrock","Emil Skyttä","Carson Smith","Tay Smith","Andy Stefonowicz","Markhi Strickland","Damari Wheeler-Thomas"],
+  "UCLA":["Markell Alston","Tyler Bilodeau","Xavier Booker","Jamar Brown","Skyy Clark","Eric Dailey Jr.","Donovan Dent","Eric Freeny","Christian Horry","Steven Jamerson II","Evan Manjikian","Anthony Peoples Jr.","Trent Perry","Jack Seidler","Brandon Williams"],
+  "UCF":["George Beale Jr.","John Bol","Jordan Burks","Devan Cambridge","Jeremy Foumena","Themus Fulks","Elijah Hulsewe","Chris Johnson","Zach Johnson","Tanner Jones","Riley Kugel","Carmelo Pacheco","Kris Parker","Jamichael Stillwell","Poohpha Warakulnukroh"],
+  "UConn":["Solo Ball","Silas Demary Jr.","Rrezon Elezaj","Jacob Furphy","Alex Karaban","Dwayne Koroma","Alec Millender","Braylon Mullins","Uroš Paunovic","Tarris Reed Jr.","Eric Reibe","Jacob Ross","Jayden Ross","Malachi Smith","Jaylin Stewart"],
+  "Furman":["Cole Bowser","Cooper Bowser","Eddrin Bronson","Abijah Franklin","Tom House","Charles Johnston","Gunnar Lewis","Davis Molnar","Collin O'Neal","Owen Ritger","Mason Smith","Asa Thomas","Thomas Tillman","Ben Vander Wal","Alex Wilkins"],
+  "Arizona":["Dwayne Aristode","Addison Arnold","Tobe Awaka","Jaden Bradley","Brayden Burries","Jackson Cook","Anthony Dell'Orso","Sven Djopmo","Jackson Francois","Sidi Gueye","Bryce James","Ivan Kharchenkov","Motiejus Krivas","Mabil Mawut","Evan Nelson","Koa Peat"],
+  "Long Island U.":["Malachi Davis","Jamal Fuller","Jomo Goings","Greg Gordon","Caleb Johnson","Shadrak Lasu","Xinyi Li","Faheim Meran","Isaiah Miranda","Eddie Munyak","Max Ndlovu-Fraser","A.J. Neal Jr.","Gavin Pendergast","Mason Porter-Brown","Tre'shawn Sheppard"],
+  "Villanova":["Devin Askew","Duke Brennan","Wade Chiddick","Malcolm Flaggs","Matt Hodge","Chris Jeffrey","Acaden Lewis","Bryce Lindsay","Nico Onyekwere","Malachi Palmer","Tyler Perkins","Braden Pierce","Zion Stanford"],
+  "Utah State":["Drake Allen","Tucker Anderson","Jordy Barnes","Brayden Boe","Garry Clark","MJ Collins Jr.","Adlan Elamin","Mason Falslev","David Iweze","Luke Kearney","Zach Keller","Kolby King","Elijah Perryman","Karson Templin","Kingston Tosi"],
+  "Wisconsin":["Aleksas Bieliauskas","John Blackwell","Nick Boyd","Braeden Carrington","Isaac Gard","Will Garlock","Riccardo Greppi","Jack Janicki","Hayden Jones","Zach Kinziger","Austin Rapp","Jack Robison","Andrew Rohde","Nolan Winter"],
+  "High Point":["Terry Anderson","Owen Aquino","Vincent Brady II","Babacar Diallo","Cam'Ron Fletcher","David Fonville","Dorian Grosber","Braden Hausen","Josh Ibukunoluwa","Birgir Irving","Chase Johnston","Kasen Krueger","Rob Martin","Conrad Martinez","Caden Miller","Mavrick Miller","Youssouf Singare","Scotty Washington"],
+  "Arkansas":["Darius Acuff Jr.","Trevon Brazile","Amere Brown","Elmir Džafić","Malique Ewin","Jaden Karuletwa","Ayden Kelley","Karter Knox","Nick Pringle","Billy Richmond III","Karim Rtail","Isaiah Sealy","Paulo Semedo","Meleek Thomas","D.J. Wagner"],
+  "Hawaii":["Dre Bullock","Hunter Carter","Tanner Cuff","AJ Economou","Hunter Erickson","Isaac Finlinson","Aaron Hunkin-Claytor","Isaac Johnson","Isaiah Kerr","Gytis Nemeiksa","Harry Rouhliadeff","Yacine Toumi"],
+  "NC State":["Matt Able","Terrance Arceneaux","Alyn Breed","Quadir Copeland","Jerry Deng","Scottie Ebube","Tre Holloman","Jayme Kontuniemi","Colt Langdon","Ven-Allen Lubin","Paul McNeil Jr.","Musa Sagnia","Jordan Snell","Zymicah Wilkins","Darrion Williams"],
+  "Texas":["Cole Bott","John Clark","Nic Codie","Declan Duru Jr.","Camden Heide","Tramon Mark","Anthon McDermott","Lewis Obiorah","Jordan Pope","Dailyn Swain","Brandon Taylor","Lassina Traore","Matas Vokietaitis","Chendall Weaver","Simeon Wilcher"],
+  "BYU":["Abdullah Ahmed","Dawson Baker","Mihailo Boskovic","Kennard Davis Jr.","Dominique Diomande","AJ Dybantsa","Keba Keita","Aleksej Kostic","Brody Kozlowski","Khadim Mboup","Jared McGregor","Tyler Mrus","Nate Pickens","Richie Saunders","Xavion Staton","Robert Wright III"],
+  "Gonzaga":["Joaquim ArauzMoore","Ismaila Diagne","Davis Fogle","Tyon Grant-Foster","Noah Haaland","Braden Huff","Graham Ike","Emmanuel Innocenti","Parker Jefferson","Alonzo Metz","Adam Miller","Cade Orness","Mario Saint-Supéry","Braeden Smith","Steele Venters","Jalen Warley"],
+  "Kennesaw State":["Chase Clemmons","Davin Cosby Jr.","Simeon Cottle","Jaden Harris","Eric Holland","RJ Johnson","Braedan Lue","Dozie Onyirimba","Kaden Rickard","Ramone Seals","Frankquon Sherman","Trey Simpson","Perry Smith Jr.","Charles Stone","Amir Taylor","Nigel Thomas","Brendan Tousignaut","Darius Washington III"],
+  "Miami (FL)":["Dante Allen","Marcus Allen","Salih Altuntas","Tre Donaldson","Noam Dovrat","Shelton Henderson","Jordyn Kee","John Laboy II","Treyvon Maddox","Timotej Malovec","Malik Reneau","Ernest Udeh Jr.","Tru Washington"],
+  "Missouri":["T.O. Barrett","Annor Boateng","Trent Burns","Jacob Crews","Sebastian Mack","Mark Mitchell","Luke Northweather","Shawn Phillips Jr.","Trent Pierce","Jevon Porter","Nicholas Randall","Anthony Robinson II","Aaron Rowe","Jayden Stone"],
+  "Purdue":["Jack Benter","Raleigh Burgess","Oscar Cluff","C.J. Cox","Aaron Fine","Gicarri Harris","Daniel Jacobsen","Trey Kaufman-Renn","Sam King","Fletcher Loyer","Jack Lusk","Omer Mayer","Liam Murphy","Jace Rayl","Braden Smith","Antione West Jr."],
+  "Queens (NC)":["Chris Ashby","Yoav Berman","Jacob Brandly","Danzelle Bullock Coles","Reid Celestin","Colby Christiansen","Kam Clark","Tyler Crider","Isaiah Henry","Maban Jabriel","Jimma James","Gus Larson","Nasir Mann","Avantae Parker","Carson Schwieger","Matthew Walter","Jordan Watford","Seamus Wilson","Saif-Allah Zatari"],
+  "Lehigh":["Alfredo Addesa","Henri Adiassa","Hank Alvey","Edouard Benoit","Caesar Burrows","Tommy Conniff","Joshua Ingram","Peter Kramer","Bube Momah","Jake Pike","Brendan Reed","Caleb Thomas","Andrew Urosevic","Jalen Vazquez","Nasir Whitlock"],
+  "Prairie View A&M":["Ryan Bolton Jr.","Marcel Bryant","Hassane Diallo","Corey Dunning","Dontae Horne","Tai'Reon Joseph","Joey Madimba","Keeshawn Mason","Elijah Mitchell","Jannoy Thomas","Cory Wells","Lance Williams"],
+  "Florida":["AJ Brown","Isaiah Brown","Rueben Chinyelu","Alex Condon","Boogie Fland","Micah Handlogten","Thomas Haugh","CJ Ingram","Cooper Josefsberg","Urban Klavzar","Alex Kovatchev","Xaivian Lee","Alex Lloyd","Viktor Mikic","Olivier Rioux"],
+  "Clemson":["Ace Buckner","Blake Davidson","Nick Davidson","Zac Foster","RJ Godfrey","Dillon Hunter","Butta Johnson","Jestin Porter","Trent Steinour","Dallas Thomas","Chase Thompson","Jake Wahlin","Carter Welling"],
+  "Iowa":["Tavion Banks","Kael Combs","Alvaro Folgueiras","Brendan Hausen","Isaia Howard","Trevin Jirak","Cooper Koch","Jacob Koch","Cam Manyawu","Joey Matteoni","Peyton McCollum","Tate Sage","Bennett Stirtz","Trey Thompson"],
+  "Vanderbilt":["Tyrin Lawrence","Jason Edwards","EJ Spillman","Devin McGlockton","Jaylen Carey","Jalen Stute","Carter Lang","Ven-Allen Lubin","Chaz Lanier","Colin Smith"],
+  "McNeese":["Tyshawn Archie","Kaleb Brewer","T'Johnn Brown","Carl Cherenfant","Jerrell Colbert","Garwey Dual","Jacolb Fredson-Cole","Javohn Garcia","Larry Johnson","Peitok Machar","Akim Mazou","Yanis Ndjonga","JJ Rembert","DJ Richards Jr.","Erik Villarreal"],
+  "Nebraska":["Kendall Blue","Justin Bolis","Henry Burt","Berke Büyüktuncel","Will Cooper","Leo Curtis","Connor Essegian","Braden Frager","Jared Garcia","Sam Hoiberg","Cale Jacobsen","Ugnius Jaruševičius","Jamarques Lawrence","Rienk Mast","Quentin Rhymes","Pryce Sandfort"],
+  "Troy":["Hikaru Awata","Jerrell Bellamy","Cobi Campbell","Cooper Campbell","Emmanuel Clarton","Javen Colbert","Austin Cross","Thomas Dowd","Javier Gilgeous-Glasgow","Corbin Green","Evan Griffin","Kerrington Kiel","Kameryn Mitchell","Theo Seng","Victor Valdes"],
+  "North Carolina":["Luka Bogavac","James Brown","Elijah Davis","Isaiah Denis","Derek Dixon","Kyan Evans","Zayden High","John Holbrook","Ivan Matlekovic","Jonathan Powell","Evan Smith","Jarin Stevenson","Seth Trimble","Henri Veesaar","Caleb Wilson","Jaydon Young"],
+  "VCU":["Michael Belle","Lazar Djokovic","Jordann Dumont","Barry Evans","Christian Fermin","Terrence Hill Jr.","Brandon Jennings","Nyk Lewis","Keyshawn Mitchell","Ahmad Nowell","Obinnaya Okafor","Jordan Tillery","Jadrian Tracey","Tyrell Ward"],
+  "Illinois":["Toni Bilic","Kylan Boswell","Jake Davis","Blake Fagbemi","Ben Humrichous","Tomislav Ivisic","Zvonimir Ivisic","Jason Jakstys","Brandon Lee","David Mirkovic","Mihailo Petrovic","AJ Redd","Ty Rodgers","Andrej Stojakovic","Keaton Wagler"],
+  "Penn":["Max Martz","Nick Spinoso","Ryan Faulkner","Clark Slajchert","Luka Brajkovic","John Michael Zunic","Jonah Charles","Joey Wagstaff"],
+  "St. Mary's":["Cade Bennett","Liam Campbell","Joshua Dent","Tony Duckett","Oliver Faubert","Kevin Gad","Jazz Gardner","Rory Hawke","Mantas Juzenas","Mikey Lewis","Trent MacLean","Andrew McKeever","Paulius Murauskas","Dillan Shaw","Harry Wessels"],
+  "Texas A&M":["Rashaun Agee","Zach Clemence","Ali Dibba","Rubén Dominguez","Federiko Federiko","Jeremiah Green","Rylan Griffen","Marcus Hill","Josh Holloway","Pop Isaacs","Jacari Lane","Chris McDermott","Mackenzie Mgbako","Noah Shelby","Jamie Vinson"],
+  "Houston":["Chris Cenac Jr.","Kingston Flemings","Isiah Harwell","Bryce Jackson","Kordel Jefferson","Cedric Lath","Chase McCarty","Jacob McFarland","Mercy Miller","Kalifa Sakho","Emanuel Sharp","Joseph Tugler","Milos Uzan","Ramon Walker Jr."],
+  "Howard":["Isaiah Brown","Travelle Bryson","Alex Cotton","Shane Frazier","Cam Gillus","Bryce Harris","Ed Holland III","Stefan Isailovic","Jeremiah Johnson","Julian Johnson","Danas Kazakevicius","Ose Okojie","BJ Powell","Calvin Robins Jr.","River Smith","Cedric Taylor III"],
+  "UMBC":["DJ Armstrong Jr.","Devin Ceaser","Regimantas Ciunys","Daylon Dickerson","Caden Diggs","Cougar Downing","Tim Eze","Paul Greene","Riley Jacobs","Jah'Likai King","Josh Odunowo","Jake Stout","Jose Roberto Tanchyn","Saahil Thakkar","Ace Valentine"],
+  "Michigan":["Nimari Burnett","Elliot Cadeau","L.J. Cason","Howard Eisley Jr.","Roddy Gayle Jr.","Oscar Goodman","Winters Grady","Harrison Hochberg","Morez Johnson Jr.","Malick Kordel","Yaxel Lendeborg","Ricky Liburd","Aday Mara","Charlie May","Trey McKenney","Will Tschetter"],
+  "Georgia":["Justin Abson","Justin Bailey","Blue Cain","Kanon Catchings","Somto Cyril","Dylan James","Markel Jennings","Brandon Klatsky","Jackson McVey","Marcus Millender","Jaden Newell","Jordan Ross","Kareem Stagg","Jake Wilkins","Jeremiah Wilkinson"],
+  "St. Louis":["Kalu Anya","Robbie Avila","Dion Brown","Badara Diakite","Brady Dunlap","Trey Green","Isaac Holmes","Cam Hutson","Quentin Jones","Jax Kerr","Luke Laczkowski","Amari McCottry","Paul Otieno","Jaden Schertz","Ishan Sharma","Kellen Thames"],
+  "Texas Tech":["Marial Akuentok","Christian Anderson","Donovan Atwell","Luke Bamgboye","Tyeree Bryan","Jack Francis","Nolan Groves","Jazz Henderson","LaTrell Hoover","Leon Horner","Josiah Moseley","Jaylen Petty","JT Toppin","LeJuan Watts"],
+  "Akron":["Chabi Barre","Rich Brisco","Conner Groce","Zach Halligan","Bowen Hardman","Cody Head","Josh Henderson","Tavari Johnson","Amani Lyles","Eric Mahaffey","Evan Mahaffey","Marvin Musiime-Kamali","Tai Perkins","Shammah Scott","Ognjen Stankovic","Sharron Young"],
+  "Alabama":["Amari Allen","Charles Bediako","Jalil Bethea","Taylor Bol Bowen","Keitenn Bristow","Davion Hannah","Aden Holloway","London Jemison","Houston Mallette","Preston Murphy Jr.","Collins Onyejiaka","Labaron Philon Jr.","Aiden Sherrell","Noah Williamson","Latrell Wrightsell Jr."],
+  "Hofstra":["Trey Boyd III","Cruz Davis","Joshua DeCady","Preston Edmead","Carlos Lopez","Brandon Morgan","Victory Onuetu","Biggie Patterson","German Plotnikov","Joshua Aaron Reaves","Jaeden Roberts","Silas Sunday","Alex Tsynkevich","Amir Williams","A.J. Wills"],
+  "SMU":["B.J. Davis-Ray","B.J. Edwards","Mitchell Holmes","Niccolo Kalischer-Stork","Boopie Miller","Jermaine O'Neal Jr.","Jaron Pierre Jr.","Chance Puryear","Jaden Toombs","Trey Utter","Nigel Walls","Sam Walters","Corey Washington","Billy White III","Samet Yiğitoğlu"],
+  "Miami (OH)":["Blake Anderson","Almar Atlason","Brant Byers","Eian Elmer","Brady Ganley","Evan Ipsaro","Justin Kirby","Jackson Kotecki","Trey Perry","Tyler Robbins","Luke Skaljac","Leshawn Stowers","Peter Suder","Kyle Waltz","Antwone Woolfolk","Ethan Wright","Eli Yofan"],
+  "Tennessee":["Amaree Abram","Nate Ament","Bishop Boswell","DeWayne Brown II","Ethan Burg","Jaylen Carey","Campbell Duncan","J.P. Estrella","Amari Evans","Ja'Kobi Gillespie","Troy Henderson","Grant Hurst","Clarence Massamba","Felix Okpara","Gavin Paull","Cade Phillips"],
+  "Virginia":["Silas Barksdale","Martin Carrere","Thijs De Ridder","Elijah Gertrude","Johann Grunloh","Dallin Hall","Carter Lang","Sam Lewis","Chance Mallory","Owen Odom","Ugonna Onyenso","Desmond Roberts","Malik Thomas","Devin Tillis","Jacari White"],
+  "Wright State":["Sam Alamutu","Alex Bruskotter","TJ Burch","Solomon Callaghan","Michael Cooper","Ayden Davis","PJ Douglas","Bryan Etumnu","Andrea Holden","Michael Imariagbe","Dominic Pangonis","Kellen Pickett","Isaiah Williams","Logan Woods"],
+  "Kentucky":["Denzel Aberdeen","Collin Chandler","Mouhamed Dioubate","Brandon Garrison","Braydon Hawthorne","Walker Horn","Andrija Jelavić","Jasper Johnson","Jaland Lowe","Malachi Moreno","Trent Noah","Otega Oweh","Reece Potter","Jayden Quaintance","Zach Tow","Kam Williams"],
+  "Santa Clara":["Noah Badibanga","Francis Chukwudebelu","KJ Cochran","Thierry Darlan","Malachi Douyon","Jake Ensminger","Sash Gavalyugov","Allen Graves","Christian Hammond","Brenton Knapper","Brad Longcor III","Elijah Mahi","Gehrig Normand","Bukky Oboye","Juan Reyna","Chris Tadjo","Brendan Yarusso"],
+  "Iowa State":["Jamarion Batemon","Blake Buchanan","Nate Heise","Joshua Jefferson","Cade Kelderman","Tamin Lipsey","Xzavion Mitchell","Milan Momcilovic","Eric Mulder","Dominick Nelson","Dominykas Pleta","Anthony Rise","Killyan Toure","Mason Williams"],
+  "Tennessee State":["Ogien Ayo","Maddux Bodenhamer","JC Brooks","Alex Garcia","Travis Harper II","Dante Harris","Damon Howard Jr.","Jayden Jones","Kavien Jones","Jean Yvens Lafleur","Khalil London","Antoine Lorick III","Aaron Nkrumah","Jalen Pitre","Jabrion Spikes","Carlous Williams"],
+  "Idaho":["Trevon Blassingame","Isaiah Brickner","Kristian Gonzalez","Talon Jenkins","Will Jenson","Seth Joba","Biko Johnson","Miles Klapper","Tyler Linhardt","Kolton Mitchell","Jack Payne","Jackson Rasmussen","Brody Rowbury","Aidan Sevilla","Ewan Steele","Titus Yearout"],
+};
+
+// ═══════════════════════════════════════════════════════
+// PLAY-IN GAMES (First Four, March 17-18, Dayton)
+// CORRECT assignments per 2026 bracket image:
+//   WEST  11-seed slot:    NC State vs Texas
+//   SOUTH 16-seed slot:    Lehigh vs Prairie View A&M
+//   MIDWEST 16-seed slot:  Howard vs UMBC
+//   MIDWEST 11-seed slot:  SMU vs Miami (OH)
+// ═══════════════════════════════════════════════════════
+const PLAY_IN = {
+  PI_W11:  { t1:"NC State",          t2:"Texas",            seed:11, date:"3/17", time:"6:40 PM ET",  region:"WEST" },
+  PI_S16:  { t1:"Lehigh",            t2:"Prairie View A&M", seed:16, date:"3/17", time:"9:10 PM ET",  region:"SOUTH" },
+  PI_M16:  { t1:"Howard",            t2:"UMBC",             seed:16, date:"3/18", time:"6:40 PM ET",  region:"MIDWEST" },
+  PI_M11:  { t1:"SMU",               t2:"Miami (OH)",       seed:11, date:"3/18", time:"9:10 PM ET",  region:"MIDWEST" },
+};
+
+// Helper: get display name for a play-in slot
+function piDisplay(id) {
+  const pi = PLAY_IN[id];
+  if(!pi) return {name:'TBD',seed:'?',isPI:false};
+  const w = getState().playinResults[id];
+  if(w) return {name:w, seed:pi.seed, isPI:false}; // resolved
+  return {name:`${pi.t1} / ${pi.t2}`, seed:pi.seed, isPI:true}; // unresolved
+}
+
+// ═══════════════════════════════════════════════════════
+// BRACKET STRUCTURE — correct per 2026 bracket image
+// t2pi: play-in slot ID when the slot is a play-in winner
+// ═══════════════════════════════════════════════════════
+const BRACKET = {
+  EAST:[
+    {s1:1, t1:"Duke",          s2:16, t2:"Siena"},
+    {s1:8, t1:"Ohio State",    s2:9,  t2:"TCU"},
+    {s1:5, t1:"St. John's",    s2:12, t2:"Northern Iowa"},
+    {s1:4, t1:"Kansas",        s2:13, t2:"Cal Baptist"},
+    {s1:6, t1:"Louisville",    s2:11, t2:"South Florida"},
+    {s1:3, t1:"Michigan State",s2:14, t2:"North Dakota St."},
+    {s1:7, t1:"UCLA",          s2:10, t2:"UCF"},
+    {s1:2, t1:"UConn",         s2:15, t2:"Furman"},
+  ],
+  WEST:[
+    {s1:1, t1:"Arizona",       s2:16, t2:"Long Island U."},
+    {s1:8, t1:"Villanova",     s2:9,  t2:"Utah State"},
+    {s1:5, t1:"Wisconsin",     s2:12, t2:"High Point"},
+    {s1:4, t1:"Arkansas",      s2:13, t2:"Hawaii"},
+    {s1:6, t1:"BYU",           s2:11, t2:"PI_W11",    t2pi:"PI_W11"},
+    {s1:3, t1:"Gonzaga",       s2:14, t2:"Kennesaw State"},
+    {s1:7, t1:"Miami (FL)",    s2:10, t2:"Missouri"},
+    {s1:2, t1:"Purdue",        s2:15, t2:"Queens (NC)"},
+  ],
+  SOUTH:[
+    {s1:1, t1:"Florida",       s2:16, t2:"PI_S16",    t2pi:"PI_S16"},
+    {s1:8, t1:"Clemson",       s2:9,  t2:"Iowa"},
+    {s1:5, t1:"Vanderbilt",    s2:12, t2:"McNeese"},
+    {s1:4, t1:"Nebraska",      s2:13, t2:"Troy"},
+    {s1:6, t1:"North Carolina",s2:11, t2:"VCU"},
+    {s1:3, t1:"Illinois",      s2:14, t2:"Penn"},
+    {s1:7, t1:"St. Mary's",    s2:10, t2:"Texas A&M"},
+    {s1:2, t1:"Houston",       s2:15, t2:"Idaho"},
+  ],
+  MIDWEST:[
+    {s1:1, t1:"Michigan",      s2:16, t2:"PI_M16",    t2pi:"PI_M16"},
+    {s1:8, t1:"Georgia",       s2:9,  t2:"St. Louis"},
+    {s1:5, t1:"Texas Tech",    s2:12, t2:"Akron"},
+    {s1:4, t1:"Alabama",       s2:13, t2:"Hofstra"},
+    {s1:6, t1:"Tennessee",     s2:11, t2:"PI_M11",    t2pi:"PI_M11"},
+    {s1:3, t1:"Virginia",      s2:14, t2:"Wright State"},
+    {s1:7, t1:"Kentucky",      s2:10, t2:"Santa Clara"},
+    {s1:2, t1:"Iowa State",    s2:15, t2:"Tennessee State"},
+  ],
+};
+
+// ═══════════════════════════════════════════════════════
+// ALL 68 TEAMS for team selection grid
+// Play-in teams listed individually, labeled accordingly
+// ═══════════════════════════════════════════════════════
+const ALL68 = [
+  // EAST (16 teams, no play-ins)
+  {r:"EAST",s:1, t:"Duke"},
+  {r:"EAST",s:16,t:"Siena"},
+  {r:"EAST",s:8, t:"Ohio State"},
+  {r:"EAST",s:9, t:"TCU"},
+  {r:"EAST",s:5, t:"St. John's"},
+  {r:"EAST",s:12,t:"Northern Iowa"},
+  {r:"EAST",s:4, t:"Kansas"},
+  {r:"EAST",s:13,t:"Cal Baptist"},
+  {r:"EAST",s:6, t:"Louisville"},
+  {r:"EAST",s:11,t:"South Florida"},
+  {r:"EAST",s:3, t:"Michigan State"},
+  {r:"EAST",s:14,t:"North Dakota St."},
+  {r:"EAST",s:7, t:"UCLA"},
+  {r:"EAST",s:10,t:"UCF"},
+  {r:"EAST",s:2, t:"UConn"},
+  {r:"EAST",s:15,t:"Furman"},
+  // WEST (14 regular + 2 play-in = 16)
+  {r:"WEST",s:1, t:"Arizona"},
+  {r:"WEST",s:16,t:"Long Island U."},
+  {r:"WEST",s:8, t:"Villanova"},
+  {r:"WEST",s:9, t:"Utah State"},
+  {r:"WEST",s:5, t:"Wisconsin"},
+  {r:"WEST",s:12,t:"High Point"},
+  {r:"WEST",s:4, t:"Arkansas"},
+  {r:"WEST",s:13,t:"Hawaii"},
+  {r:"WEST",s:6, t:"BYU"},
+  {r:"WEST",s:11,t:"NC State",   pi:"PI_W11"},
+  {r:"WEST",s:11,t:"Texas",      pi:"PI_W11"},
+  {r:"WEST",s:3, t:"Gonzaga"},
+  {r:"WEST",s:14,t:"Kennesaw State"},
+  {r:"WEST",s:7, t:"Miami (FL)"},
+  {r:"WEST",s:10,t:"Missouri"},
+  {r:"WEST",s:2, t:"Purdue"},
+  {r:"WEST",s:15,t:"Queens (NC)"},
+  // SOUTH (14 regular + 2 play-in + VCU as reg 11 = 16)
+  {r:"SOUTH",s:1, t:"Florida"},
+  {r:"SOUTH",s:16,t:"Lehigh",          pi:"PI_S16"},
+  {r:"SOUTH",s:16,t:"Prairie View A&M",pi:"PI_S16"},
+  {r:"SOUTH",s:8, t:"Clemson"},
+  {r:"SOUTH",s:9, t:"Iowa"},
+  {r:"SOUTH",s:5, t:"Vanderbilt"},
+  {r:"SOUTH",s:12,t:"McNeese"},
+  {r:"SOUTH",s:4, t:"Nebraska"},
+  {r:"SOUTH",s:13,t:"Troy"},
+  {r:"SOUTH",s:6, t:"North Carolina"},
+  {r:"SOUTH",s:11,t:"VCU"},
+  {r:"SOUTH",s:3, t:"Illinois"},
+  {r:"SOUTH",s:14,t:"Penn"},
+  {r:"SOUTH",s:7, t:"St. Mary's"},
+  {r:"SOUTH",s:10,t:"Texas A&M"},
+  {r:"SOUTH",s:2, t:"Houston"},
+  {r:"SOUTH",s:15,t:"Idaho"},
+  // MIDWEST (14 regular + 4 play-in = 18 → 14 + 2 play-in pairs)
+  {r:"MIDWEST",s:1, t:"Michigan"},
+  {r:"MIDWEST",s:16,t:"Howard",         pi:"PI_M16"},
+  {r:"MIDWEST",s:16,t:"UMBC",           pi:"PI_M16"},
+  {r:"MIDWEST",s:8, t:"Georgia"},
+  {r:"MIDWEST",s:9, t:"St. Louis"},
+  {r:"MIDWEST",s:5, t:"Texas Tech"},
+  {r:"MIDWEST",s:12,t:"Akron"},
+  {r:"MIDWEST",s:4, t:"Alabama"},
+  {r:"MIDWEST",s:13,t:"Hofstra"},
+  {r:"MIDWEST",s:6, t:"Tennessee"},
+  {r:"MIDWEST",s:11,t:"SMU",            pi:"PI_M11"},
+  {r:"MIDWEST",s:11,t:"Miami (OH)",     pi:"PI_M11"},
+  {r:"MIDWEST",s:3, t:"Virginia"},
+  {r:"MIDWEST",s:14,t:"Wright State"},
+  {r:"MIDWEST",s:7, t:"Kentucky"},
+  {r:"MIDWEST",s:10,t:"Santa Clara"},
+  {r:"MIDWEST",s:2, t:"Iowa State"},
+  {r:"MIDWEST",s:15,t:"Tennessee State"},
+];
+
+// ═══════════════════════════════════════════════════════
+// STATE — all persisted to localStorage
+// ═══════════════════════════════════════════════════════
+const LS = {
+  g:(k,d)=>{ try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):d;}catch(e){return d;} },
+  s:(k,v)=>{ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} },
+  d:(k)=>localStorage.removeItem(k)
+};
+
+function getState() {
+  return {
+    users:         LS.g('bb_users',{}),
+    teams:         LS.g('bb_teams',[]),
+    playerStats:   LS.g('bb_stats',{}),
+    gameLogs:      LS.g('bb_logs',{}),
+    bracketResults:LS.g('bb_brac',{}),
+    playinResults: LS.g('bb_pi',{}),
+    controls:      LS.g('bb_ctrl',{picksLocked:false,showLeaderboard:true,autoScoring:false,tournamentLive:false}),
+    announcement:  LS.g('bb_ann',''),
+  };
+}
+
+// Working copies (always in sync with LS)
+let USERS, TEAMS, STATS, LOGS, BRAC, PI, CTRL, ANN, ANNOUNCEMENTS, MANUAL_GAMES;
+function loadAll() {
+  const st = getState();
+  USERS=st.users; TEAMS=st.teams; STATS=st.playerStats;
+  LOGS=st.gameLogs; BRAC=st.bracketResults; PI=st.playinResults;
+  CTRL=st.controls; ANN=st.announcement;
+  ANNOUNCEMENTS = LS.g('bb_announcements',[]);
+  MANUAL_GAMES  = LS.g('bb_manual_games',[]);
+}
+function saveAll() {
+  LS.s('bb_users',USERS); LS.s('bb_teams',TEAMS); LS.s('bb_stats',STATS);
+  LS.s('bb_logs',LOGS); LS.s('bb_brac',BRAC); LS.s('bb_pi',PI);
+  LS.s('bb_ctrl',CTRL); LS.s('bb_ann',ANN);
+  LS.s('bb_announcements',ANNOUNCEMENTS);
+  LS.s('bb_manual_games',MANUAL_GAMES);
+}
+loadAll();
+
+// Auth state
+let CUR_USER = LS.g('bb_me','') || null;
+let COMM_AUTHED = false;
+let EDIT_TEAM_ID = null; // for picks edit modal
+
+// Build wizard state
+let SEL = [];   // selected team names
+let PICKS = {}; // team -> player
+
+// PICKS LOCK
+const LOCK_MS = new Date('2026-03-19T12:15:00-04:00').getTime();
+function picksLocked() { return CTRL.picksLocked || Date.now() >= LOCK_MS; }
+
+// ═══════════════════════════════════════════════════════
+// POINTS
+// ═══════════════════════════════════════════════════════
+function calcFP(s) {
+  if(!s) return 0;
+  return (s.pts||0)+(s.reb||0)+(s.ast||0)+(s.stl||0)+(s.blk||0)-(s.to||0)-(s.foul||0);
+}
+
+function calcTeamPts(team) {
+  let base = 0;
+  Object.values(team.picks||{}).forEach(player => { base += calcFP(STATS[player]||{}); });
+  return base + (team.adjustment||0);
+}
+
+function recalcAll() {
+  TEAMS.forEach(t => { t.points = calcTeamPts(t); });
+  saveAll();
+}
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+const PAGE_ORDER = ['home','build','bracket','scores','leaderboard','myteams','announcements','commissioner'];
+
+function goPage(id) {
+  if(id==='build' && picksLocked() && !COMM_AUTHED) {
+    toast('Picks are locked — deadline has passed','err'); return;
+  }
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const pg = document.getElementById('page-'+id);
+  if(!pg) return;
+  pg.classList.add('active');
+  const nb = document.querySelectorAll('.nav-btn');
+  const i = PAGE_ORDER.indexOf(id);
+  if(i>=0 && nb[i]) nb[i].classList.add('active');
+
+  if(id==='home')        { loadHomeGames(); renderHomeLB(); updateHeroStats(); }
+  if(id==='build')       { rebuildTeamsGrid(); applyLockUI(); }
+  if(id==='bracket')     renderBracket();
+  if(id==='scores')      { setScoreTab('all'); fetchGames(); renderManualGamesInScores(); }
+  if(id==='leaderboard') renderLB('all');
+  if(id==='myteams')     renderMyTeams();
+  if(id==='announcements') renderAnnouncementsPage();
+  if(id==='commissioner'){
+    if(!COMM_AUTHED) {
+      document.getElementById('comm-login-screen').style.display='block';
+      document.getElementById('comm-dashboard').style.display='none';
+    } else { loadCommDash(); }
+  }
+}
+
+// Commissioner tab: 3 clicks on logo, NO persistence — resets every page load
+let _lc=0;
+document.getElementById('logo').addEventListener('click',()=>{
+  _lc++;
+  if(_lc>=3){
+    _lc=0;
+    document.getElementById('comm-nav-btn').style.display='flex';
+    toast('Commissioner mode unlocked 👀','ok');
+  }
+});
+// Never auto-show on load — always hidden until 3 clicks
+
+// ═══════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════
+function openAuth(){ document.getElementById('auth-modal').classList.add('open'); setTimeout(()=>document.getElementById('auth-email').focus(),100); }
+function closeAuth(){ document.getElementById('auth-modal').classList.remove('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.overlay').forEach(o=>{
+  o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
+});
+
+function doAuth(){
+  const email = document.getElementById('auth-email').value.trim().toLowerCase();
+  const pw    = document.getElementById('auth-pw').value;
+  if(!email.includes('@')){ toast('Enter a valid email','err'); return; }
+  if(!pw||pw.length<4){ toast('Password must be 4+ chars','err'); return; }
+  if(!USERS[email]){
+    USERS[email]={email,pw,joinedAt:Date.now()};
+    saveAll();
+    toast('Account created! Welcome 🏀','ok');
+  } else {
+    if(USERS[email].pw!==pw){ toast('Wrong password','err'); return; }
+    toast('Welcome back!','ok');
+  }
+  CUR_USER=email; LS.s('bb_me',email);
+  updateAuthUI(); closeAuth(); updateHeroStats();
+}
+
+function updateAuthUI(){
+  const btn=document.getElementById('authBtn');
+  if(CUR_USER){
+    const n=CUR_USER.split('@')[0];
+    btn.textContent=n.charAt(0).toUpperCase()+n.slice(1)+' ▾';
+    btn.className='auth-btn out';
+    btn.onclick=()=>{ if(confirm('Sign out?')){ CUR_USER=null; LS.d('bb_me'); btn.textContent='Sign In'; btn.className='auth-btn'; btn.onclick=openAuth; renderMyTeams(); }};
+  } else {
+    btn.textContent='Sign In'; btn.className='auth-btn'; btn.onclick=openAuth;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// BUILD WIZARD
+// ═══════════════════════════════════════════════════════
+function applyLockUI(){
+  const locked = picksLocked() && !COMM_AUTHED;
+  document.getElementById('lock-banner').classList.toggle('on', locked);
+  const lb = document.getElementById('lock-btn');
+  if(lb){ lb.disabled=locked; lb.textContent=locked?'🔒 Picks Locked':'🔒 Lock In My Team'; }
+}
+
+// FIX BUG 10: always rebuild grid, syncing visual state to SEL
+function rebuildTeamsGrid(){
+  const c=document.getElementById('teams-grid');
+  c.innerHTML=''; // always clear and rebuild so tile state matches SEL
+  const regions=['EAST','WEST','SOUTH','MIDWEST'];
+  regions.forEach(r=>{
+    c.insertAdjacentHTML('beforeend',`<div class="region-head">◆ ${r} REGION</div><div class="teams-grid" id="rg-${r}"></div>`);
+    const grid=document.getElementById('rg-'+r);
+    ALL68.filter(e=>e.r===r).forEach(e=>{
+      // FIX BUG 9: use data attribute instead of inline onclick with quotes in team name
+      const div=document.createElement('div');
+      div.className='team-tile'+(SEL.includes(e.t)?' sel':'')+(SEL.length>=16&&!SEL.includes(e.t)?' maxed':'');
+      div.dataset.team=e.t;
+      div.innerHTML=`<div class="tile-seed">SEED ${e.s}</div><div class="tile-name">${e.t}</div><div class="tile-conf">${r}</div>${e.pi?`<div class="tile-playin">▸ Play-in game</div>`:''}`;
+      div.addEventListener('click',()=>toggleTile(e.t));
+      grid.appendChild(div);
+    });
+  });
+}
+
+function toggleTile(name){
+  if(!CUR_USER){ openAuth(); return; }
+  if(picksLocked()&&!COMM_AUTHED){ toast('Picks are locked','err'); return; }
+  const idx=SEL.indexOf(name);
+  if(idx>-1){ SEL.splice(idx,1); delete PICKS[name]; }
+  else{
+    if(SEL.length>=16){ toast('Max 16 teams selected','err'); return; }
+    SEL.push(name);
+    if(!PICKS[name]&&ROSTERS[name]?.length) PICKS[name]=ROSTERS[name][0];
+  }
+  // Re-sync all tile classes
+  document.querySelectorAll('.team-tile').forEach(el=>{
+    const t=el.dataset.team;
+    el.classList.toggle('sel',SEL.includes(t));
+    el.classList.toggle('maxed',SEL.length>=16&&!SEL.includes(t));
+  });
+  updateSelBar();
+}
+
+function updateSelBar(){
+  const n=SEL.length;
+  document.getElementById('sel-n').textContent=n;
+  document.getElementById('sel-fill').style.width=(n/16*100)+'%';
+  document.getElementById('sel-rem').textContent=16-n;
+  document.getElementById('to-wiz2').disabled=n<16;
+}
+
+function clearSel(){
+  SEL=[]; PICKS={};
+  document.querySelectorAll('.team-tile').forEach(el=>el.classList.remove('sel','maxed'));
+  updateSelBar();
+}
+
+function goWiz(step){
+  if(step>1&&SEL.length<16){ toast('Select 16 teams first','err'); return; }
+  if(step>1&&!CUR_USER){ openAuth(); return; }
+  if(step>1&&picksLocked()&&!COMM_AUTHED){ toast('Picks are locked','err'); return; }
+  [1,2,3,4].forEach(i=>{
+    document.getElementById('wiz-'+i).classList.toggle('active',i===step);
+    const ws=document.getElementById('ws-'+i);
+    ws.classList.remove('active','done');
+    if(i===step) ws.classList.add('active');
+    if(i<step)   ws.classList.add('done');
+  });
+  if(step===2) renderPlayerSlots();
+  if(step===4) renderConfirm();
+}
+
+function renderPlayerSlots(){
+  const c=document.getElementById('player-slots');
+  c.innerHTML='';
+  SEL.forEach(team=>{
+    const roster=ROSTERS[team]||[];
+    if(!PICKS[team]&&roster.length) PICKS[team]=roster[0];
+    const div=document.createElement('div');
+    div.className='player-slot';
+    div.innerHTML=`<div class="slot-team">${team}</div>`;
+    const sel=document.createElement('select');
+    sel.className='slot-sel';
+    sel.innerHTML='<option value="">— Select player —</option>'+roster.map(p=>`<option value="${p}"${PICKS[team]===p?' selected':''}>${p}</option>`).join('');
+    // FIX BUG 9: use closure not inline onclick with quotes
+    sel.addEventListener('change',()=>{ PICKS[team]=sel.value; });
+    div.appendChild(sel);
+    c.appendChild(div);
+  });
+}
+
+function renderConfirm(){
+  const user=CUR_USER||'';
+  const base=user.split('@')[0];
+  const baseN=base.charAt(0).toUpperCase()+base.slice(1);
+  const mine=TEAMS.filter(t=>t.owner===user);
+  const defName=mine.length===0?`${baseN}'s Team`:`${baseN}'s Team ${mine.length+1}`;
+  document.getElementById('team-name-inp').placeholder=defName;
+  document.getElementById('confirm-chips').innerHTML=SEL.map(t=>`<div class="chip"><strong>${t}:</strong>${PICKS[t]||'TBD'}</div>`).join('');
+  const tb=document.getElementById('tb-guess').value;
+  document.getElementById('confirm-tb').innerHTML=tb
+    ?`🏆 Tiebreaker: <strong>${tb}</strong> combined championship points`
+    :'<span style="color:var(--red)">⚠ No tiebreaker — go back to Step 3</span>';
+}
+
+function lockTeam(){
+  if(!CUR_USER){ openAuth(); return; }
+  if(picksLocked()&&!COMM_AUTHED){ toast('Picks are locked','err'); return; }
+  const tb=parseInt(document.getElementById('tb-guess').value)||0;
+  if(!tb){ toast('Set your tiebreaker in Step 3','err'); goWiz(3); return; }
+  const user=CUR_USER;
+  const base=user.split('@')[0]; const baseN=base.charAt(0).toUpperCase()+base.slice(1);
+  const mine=TEAMS.filter(t=>t.owner===user);
+  const defName=mine.length===0?`${baseN}'s Team`:`${baseN}'s Team ${mine.length+1}`;
+  const name=document.getElementById('team-name-inp').value.trim()||defName;
+  const entry={id:Date.now(),name,owner:user,teams:[...SEL],picks:{...PICKS},tiebreaker:tb,points:0,adjustment:0,createdAt:Date.now()};
+  TEAMS.push(entry);
+  recalcAll();
+  // FIX BUG 2: fully reset wizard
+  SEL=[]; PICKS={};
+  document.getElementById('teams-grid').innerHTML='';
+  document.getElementById('team-name-inp').value='';
+  document.getElementById('tb-guess').value='';
+  document.getElementById('player-slots').innerHTML='';
+  document.getElementById('confirm-chips').innerHTML='';
+  updateSelBar();
+  [1,2,3,4].forEach(i=>{
+    document.getElementById('wiz-'+i).classList.toggle('active',i===1);
+    const ws=document.getElementById('ws-'+i);
+    ws.classList.remove('active','done');
+    if(i===1) ws.classList.add('active');
+  });
+  toast(`"${name}" locked in! 🏀`,'ok');
+  updateHeroStats();
+  goPage('myteams');
+}
+
+// ═══════════════════════════════════════════════════════
+// BRACKET
+// ═══════════════════════════════════════════════════════
+// Only show confirmed results from BRAC — never pre-fill winners
+function getBR(t1,t2){
+  if(!t1||!t2||t1==='TBD'||t2==='TBD') return null;
+  return BRAC[[t1,t2].sort().join('__')]||null;
+}
+
+function resolveT2(m){
+  if(m.t2pi) return piDisplay(m.t2pi);
+  return {name:m.t2, seed:m.s2, isPI:false};
+}
+
+function renderBracket(){
+  let html='';
+  ['EAST','WEST','SOUTH','MIDWEST'].forEach(region=>{
+    const ms=BRACKET[region];
+    html+=`<div class="region-bracket"><div class="rb-label">◆ ${region} REGION</div><div class="rb-rounds">`;
+
+    // R64 teams for this region
+    const r64 = ms.map(m=>{
+      const t2d = resolveT2(m);
+      return [{seed:m.s1,name:m.t1},{seed:t2d.seed,name:t2d.name,isPI:t2d.isPI}];
+    });
+    html+=buildBRound(r64);
+
+    // R32 — advance winners (TBD if no result)
+    const r32=[];
+    for(let i=0;i<4;i++){
+      r32.push([advanceWinner(r64[i*2]),advanceWinner(r64[i*2+1])]);
+    }
+    html+=buildBRound(r32);
+
+    // S16
+    const s16=[];
+    for(let i=0;i<2;i++){
+      s16.push([advanceWinner(r32[i*2]),advanceWinner(r32[i*2+1])]);
+    }
+    html+=buildBRound(s16);
+
+    // E8
+    html+=buildBRound([[advanceWinner(s16[0]),advanceWinner(s16[1])]]);
+
+    html+=`</div></div>`;
+  });
+
+  html+=`<div class="ff-box">
+    <div class="ff-title">🏆 FINAL FOUR · INDIANAPOLIS · APRIL 5 &amp; 7 · CHAMPIONSHIP APRIL 6</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap">
+      <div class="ff-slot">East Winner TBD</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;color:var(--muted)">VS</div>
+      <div class="ff-slot">West Winner TBD</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:2px;color:var(--accent2);text-align:center">CHAMP<br>4/6</div>
+      <div class="ff-slot">South Winner TBD</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;color:var(--muted)">VS</div>
+      <div class="ff-slot">Midwest Winner TBD</div>
+    </div>
+    <div style="margin-top:12px;font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:2px;color:rgba(255,255,255,.3);text-align:center">NATIONAL CHAMPION TBD</div>
+  </div>`;
+
+  document.getElementById('bracket-content').innerHTML=html;
+  document.getElementById('bracket-ts').textContent='Updated '+new Date().toLocaleTimeString();
+  // Show/hide advancement hint for commissioner
+  const hint=document.getElementById('bracket-adv-hint');
+  if(hint) hint.style.display=COMM_AUTHED?'block':'none';
+}
+
+function buildBRound(pairs){
+  let html=`<div class="rb-round">`;
+  pairs.forEach(([t1,t2])=>{
+    const r=getBR(t1?.name,t2?.name);
+    const w=r?.winner||null;
+    // Commissioner can click a team bubble to advance them
+    const c1 = COMM_AUTHED && t1?.name && t1.name!=='TBD' && !t1.isPI;
+    const c2 = COMM_AUTHED && t2?.name && t2.name!=='TBD' && !t2.isPI;
+    const n1e = (t1?.name||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const n2e = (t2?.name||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    html+=`<div class="b-game">
+      <div class="b-team ${w===t1?.name?'W':w&&w!==t1?.name?'L':''}${c1?' adv-click':''}"
+        ${c1?`onclick="advanceTeam('${n1e}','${n2e}')" title="Click to advance ${t1.name}"`:''}
+      >
+        <div class="b-seed">${t1?.seed||'?'}</div>
+        <div class="b-name" style="${t1?.isPI?'font-size:10px;color:var(--accent2)':''}">${t1?.name||'TBD'}</div>
+        <div class="b-sc">${r?r.s1:''}</div>
+      </div>
+      <div class="b-team ${w===t2?.name?'W':w&&w!==t2?.name?'L':''}${c2?' adv-click':''}"
+        ${c2?`onclick="advanceTeam('${n2e}','${n1e}')" title="Click to advance ${t2.name}"`:''}
+      >
+        <div class="b-seed">${t2?.seed||'?'}</div>
+        <div class="b-name" style="${t2?.isPI?'font-size:10px;color:var(--accent2)':''}">${t2?.name||'TBD'}</div>
+        <div class="b-sc">${r?r.s2:''}</div>
+      </div>
+    </div>`;
+  });
+  html+=`</div>`;
+  return html;
+}
+
+// Commissioner clicks a team to advance them — toggle off by clicking winner again
+function advanceTeam(winner, loser){
+  if(!COMM_AUTHED) return;
+  const key=[winner,loser].sort().join('__');
+  if(BRAC[key]?.winner===winner){
+    if(!confirm(`Undo: remove "${winner} beat ${loser}"?`)) return;
+    delete BRAC[key];
+    LS.s('bb_brac',BRAC);
+    renderBracket();
+    toast(`Result removed`,'ok');
+  } else {
+    BRAC[key]={winner, s1:'', s2:''};
+    LS.s('bb_brac',BRAC);
+    renderBracket();
+    toast(`${winner} advanced ✓`,'ok');
+  }
+}
+
+function advanceWinner(pair){
+  if(!pair||!pair[0]||!pair[1]) return {seed:'?',name:'TBD'};
+  const [t1,t2]=pair;
+  if(t1.isPI||t2.isPI) return {seed:'?',name:'TBD'}; // can't advance unresolved play-in
+  const r=getBR(t1.name,t2.name);
+  if(!r) return {seed:'?',name:'TBD'};
+  return r.winner===t1.name?t1:t2;
+}
+
+// ═══════════════════════════════════════════════════════
+// LIVE SCORES — ESPN, ALL games shown with times
+// ═══════════════════════════════════════════════════════
+let ALL_GAMES=[];
+let SCORE_TAB='all';
+
+// FIX BUG 5: mark active tab on load
+function setScoreTab(tab){
+  SCORE_TAB=tab;
+  document.querySelectorAll('#score-tab-bar .btn').forEach(b=>{
+    b.className='btn btn-ghost btn-sm';
+  });
+  const activeBtn=document.getElementById('st-'+tab);
+  if(activeBtn) activeBtn.className='btn btn-primary btn-sm';
+  if(tab==='mine'){ renderMyPlayers(); return; }
+  renderGames();
+}
+
+async function fetchGames(){
+  try{
+    // Pull all college basketball games - no group filter so we get everything
+    // limit=100 ensures we get all tournament games (64 + play-ins = ~68)
+    const url='https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?limit=100&groups=50';
+    const r=await fetch(url);
+    const d=await r.json();
+    // Also try the general scoreboard if tournament-specific returns few games
+    let events=d.events||[];
+    // If fewer than 5 events, try without the groups filter
+    if(events.length<5){
+      const r2=await fetch('https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?limit=100');
+      const d2=await r2.json();
+      if((d2.events||[]).length>events.length) events=d2.events||[];
+    }
+    ALL_GAMES=events;
+    renderGames();
+    renderBracketFromESPN(events);
+    // If auto-scoring is on, pull box scores for active games
+    if(CTRL.autoScoring) await runScoringPipeline(events);
+  }catch(e){
+    console.warn('ESPN fetch error:',e);
+    document.getElementById('games-container').innerHTML=`<div class="card" style="text-align:center;padding:28px;color:var(--muted);font-style:italic">Could not connect to ESPN. Showing manual games below.</div>`;
+  }
+}
+
+function renderGames(){
+  const tab=SCORE_TAB;
+  if(tab==='mine'){ renderMyPlayers(); return; }
+  let games=[...ALL_GAMES];
+  if(tab==='live')     games=games.filter(e=>e.status?.type?.state==='in');
+  if(tab==='final')    games=games.filter(e=>e.status?.type?.state==='post');
+  if(tab==='upcoming') games=games.filter(e=>e.status?.type?.state==='pre');
+  if(tab==='today'){
+    const td=new Date().toDateString();
+    games=games.filter(e=>new Date(e.competitions?.[0]?.date||e.date).toDateString()===td);
+  }
+  // Sort: live > final > upcoming, then by start time
+  games.sort((a,b)=>{
+    const so={in:0,post:1,pre:2};
+    const sa=so[a.status?.type?.state]??3, sb=so[b.status?.type?.state]??3;
+    if(sa!==sb) return sa-sb;
+    return new Date(a.competitions?.[0]?.date||a.date||0)-new Date(b.competitions?.[0]?.date||b.date||0);
+  });
+  const c=document.getElementById('games-container');
+  if(!games.length){
+    c.innerHTML=`<div class="card" style="text-align:center;padding:28px;color:var(--muted);font-style:italic">No games matching this filter. Tournament games begin March 17 (play-ins).</div>`;
+    return;
+  }
+  c.innerHTML=`<div class="g3">${games.map(renderGameCard).join('')}</div>`;
+}
+
+function renderGameCard(e){
+  const comp=e.competitions?.[0]; if(!comp) return '';
+  const teams=comp.competitors||[];
+  const away=teams.find(t=>t.homeAway==='away')||teams[0];
+  const home=teams.find(t=>t.homeAway==='home')||teams[1];
+  if(!away||!home) return '';
+  const live=e.status?.type?.state==='in';
+  const final=e.status?.type?.state==='post';
+  const pre=e.status?.type?.state==='pre';
+  const as=parseInt(away.score||0), hs=parseInt(home.score||0);
+  const clock=comp.status?.displayClock||'';
+  const period=comp.status?.period||'';
+  const notes=(comp.notes||[]).map(n=>n.headline||'').join(' ');
+  const roundTag=notes||comp.type?.text||'';
+  let timeStr='';
+  if(pre){
+    try{
+      const dt=new Date(comp.date||e.date);
+      timeStr=dt.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' · '+dt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/New_York',timeZoneName:'short'});
+    }catch(ex){timeStr=comp.date||'';}
+  }
+  return `<div class="game-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      ${roundTag?`<div class="game-round-tag">${roundTag}</div>`:'<div></div>'}
+      ${live?'<div class="live-badge"><div class="live-dot"></div>LIVE</div>':''}
+      ${final?'<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:9px;letter-spacing:1.5px;color:var(--muted)">FINAL</div>':''}
+      ${pre&&timeStr?`<div class="game-time-tag">${timeStr}</div>`:''}
+    </div>
+    <div class="game-score-row">
+      <div class="team-blk">
+        <div class="team-abbr" style="font-size:14px;line-height:1.2">${away.team?.displayName||away.team?.shortDisplayName||'Away'}</div>
+      </div>
+      <div class="score-ctr">
+        ${(live||final)?`<div class="score-nums"><span class="${as>hs?'win':''}">${as}</span><span class="sep">–</span><span class="${hs>as?'win':''}">${hs}</span></div>`:'<div class="score-nums" style="font-size:18px;color:var(--muted)">vs</div>'}
+        ${live?`<div class="score-clock">${clock} Q${period}</div>`:''}
+      </div>
+      <div class="team-blk" style="text-align:right">
+        <div class="team-abbr" style="font-size:14px;line-height:1.2">${home.team?.displayName||home.team?.shortDisplayName||'Home'}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// Auto-update bracket results from ESPN
+function renderBracketFromESPN(events){
+  events.forEach(e=>{
+    if(e.status?.type?.state!=='post') return;
+    const comp=e.competitions?.[0]; if(!comp) return;
+    const ts=comp.competitors||[]; if(ts.length<2) return;
+    const [c1,c2]=ts;
+    const n1=c1.team?.displayName||'',n2=c2.team?.displayName||'';
+    const w=c1.winner?n1:c2.winner?n2:null;
+    if(!w) return;
+    const key=[n1,n2].sort().join('__');
+    if(!BRAC[key]){
+      BRAC[key]={winner:w,s1:c1.score,s2:c2.score};
+      LS.s('bb_brac',BRAC);
+    }
+    // Check play-in
+    Object.entries(PLAY_IN).forEach(([id,pi])=>{
+      const matches=(n1.includes(pi.t1)||n1.includes(pi.t2))&&(n2.includes(pi.t1)||n2.includes(pi.t2));
+      if(matches&&!PI[id]){
+        PI[id]=w;
+        LS.s('bb_pi',PI);
+      }
+    });
+  });
+}
+
+// Home games
+async function loadHomeGames(){
+  try{
+    const r=await fetch('https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?limit=100&groups=50');
+    const d=await r.json();
+    let events=d.events||[];
+    if(events.length<5){
+      const r2=await fetch('https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?limit=100');
+      const d2=await r2.json();
+      if((d2.events||[]).length>events.length) events=d2.events||[];
+    }
+    ALL_GAMES=events;
+    const live=events.filter(e=>e.status?.type?.state==='in').slice(0,4);
+    const pre=events.filter(e=>e.status?.type?.state==='pre').slice(0,4-live.length);
+    const show=[...live,...pre].slice(0,4);
+    document.getElementById('home-games').innerHTML=show.length
+      ?`<div class="g2">${show.map(renderGameCard).join('')}</div>`
+      :`<div class="card" style="text-align:center;padding:20px;color:var(--muted);font-style:italic">Games shown here during tournament (March 17+)</div>`;
+  }catch(e){
+    document.getElementById('home-games').innerHTML=`<div class="card" style="text-align:center;padding:20px;color:var(--muted);font-style:italic">ESPN unavailable — games shown during tournament</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// LEADERBOARD
+// ═══════════════════════════════════════════════════════
+function renderLB(view){
+  const hidden=!CTRL.showLeaderboard&&!COMM_AUTHED;
+  document.getElementById('lb-hidden-msg').style.display=hidden?'block':'none';
+  document.getElementById('lb-wrap').style.display=hidden?'none':'block';
+  if(hidden) return;
+  let src=view==='mine'&&CUR_USER?TEAMS.filter(t=>t.owner===CUR_USER):TEAMS;
+  const sorted=[...src].sort((a,b)=>{
+    if(b.points!==a.points) return b.points-a.points;
+    const ct=145;
+    return Math.abs((a.tiebreaker||999)-ct)-Math.abs((b.tiebreaker||999)-ct);
+  });
+  const tbody=document.getElementById('lb-body');
+  if(!sorted.length){ tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--muted);font-style:italic">No entries yet</td></tr>`; return; }
+  tbody.innerHTML=sorted.map((t,i)=>{
+    const cls=i===0?'r1':i===1?'r2':i===2?'r3':'';
+    return `<tr class="${cls}">
+      <td><div class="rank-n">${i+1}</div></td>
+      <td><div style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700">${t.name}</div></td>
+      <td style="color:var(--muted);font-size:12px">${t.owner.split('@')[0]}</td>
+      <td style="font-size:12px;color:var(--muted)">${Object.keys(t.picks||{}).length}/16</td>
+      <td><div class="pts-val">${(t.points||0).toLocaleString()}</div></td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal)">~${t.tiebreaker||'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function switchLB(v){
+  ['all','mine'].forEach(x=>{
+    const b=document.getElementById('lb-'+x+'-btn');
+    if(b) b.className=x===v?'btn btn-primary btn-sm':'btn btn-ghost btn-sm';
+  });
+  renderLB(v);
+}
+
+function renderHomeLB(){
+  const el=document.getElementById('home-lb');
+  const sorted=[...TEAMS].sort((a,b)=>b.points-a.points).slice(0,5);
+  if(!sorted.length){ el.innerHTML=`<tr><td colspan="3" style="text-align:center;padding:14px;color:var(--muted);font-style:italic">No entries yet</td></tr>`; return; }
+  el.innerHTML=sorted.map((t,i)=>`<tr>
+    <td><div class="rank-n" style="${i===0?'color:var(--accent2)':''}">${i+1}</div></td>
+    <td style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600">${t.name}</td>
+    <td><div class="pts-val" style="font-size:13px">${t.points||0}</div></td>
+  </tr>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// MY TEAMS
+// ═══════════════════════════════════════════════════════
+function renderMyTeams(){
+  const c=document.getElementById('myteams-wrap');
+  if(!CUR_USER){ c.innerHTML=`<div class="card" style="text-align:center;padding:60px"><div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;margin-bottom:8px">SIGN IN TO VIEW YOUR TEAMS</div><button class="btn btn-primary" onclick="openAuth()">Sign In / Register</button></div>`; return; }
+  const mine=TEAMS.filter(t=>t.owner===CUR_USER);
+  if(!mine.length){ c.innerHTML=`<div class="card" style="text-align:center;padding:60px"><div style="font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;margin-bottom:8px">NO TEAMS YET</div><p style="color:var(--muted);font-style:italic;margin-bottom:18px">Build your first team!</p><button class="btn btn-primary" onclick="goPage('build')">Build Team →</button></div>`; return; }
+  const allSorted=[...TEAMS].sort((a,b)=>b.points-a.points);
+  c.innerHTML=mine.map(t=>{
+    const rank=allSorted.findIndex(x=>x.id===t.id)+1;
+    return `<div class="my-team-block">
+      <div class="mth">
+        <div><div class="mt-title">${t.name}</div><div class="mt-rank">Rank #${rank} of ${TEAMS.length} · TB: ~${t.tiebreaker||'?'}${(t.adjustment||0)?` · Adj: ${t.adjustment>0?'+':''}${t.adjustment}`:''}</div></div>
+        <div><div class="mt-pts">${t.points||0}</div><div class="mt-pts-l">Fantasy Pts</div></div>
+      </div>
+      ${buildTeamStatTable(t)}
+      <div style="margin-top:12px;display:flex;gap:8px">
+        ${!picksLocked()||COMM_AUTHED?`<button class="btn btn-ghost btn-sm" onclick="openPicksEdit(${t.id})">✏ Edit Players</button>`:''}
+        <button class="btn btn-danger btn-sm" onclick="delTeam(${t.id})">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildTeamStatTable(t){
+  const entries=Object.entries(t.picks||{});
+  if(!entries.length) return `<div style="color:var(--muted);font-size:13px;font-style:italic">No players selected</div>`;
+  const rows=entries.map(([team,player])=>{
+    const s=STATS[player]||{};
+    const fp=calcFP(s);
+    return `<tr>
+      <td class="nm"><span class="plink" onclick="openPlayerModal(${JSON.stringify(player)},${JSON.stringify(team)})">${player}</span></td>
+      <td style="font-size:10px;color:var(--muted)">${team}</td>
+      <td>${s.pts||0}</td><td>${s.reb||0}</td><td>${s.ast||0}</td>
+      <td>${s.stl||0}</td><td>${s.blk||0}</td>
+      <td>${s.to||0}</td><td>${s.foul||0}</td>
+      <td class="fp">${fp>0?'+':''}${fp}</td>
+    </tr>`;
+  }).join('');
+  const totalFP=entries.reduce((sum,[,p])=>sum+calcFP(STATS[p]||{}),0);
+  const adj=t.adjustment||0;
+  return `<div style="overflow-x:auto"><table class="pst">
+    <thead><tr><th>Player</th><th>Team</th><th>PTS</th><th>REB</th><th>AST</th><th>STL</th><th>BLK</th><th>TO</th><th>PF</th><th>FP</th></tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr style="border-top:1px solid var(--border)">
+      <td colspan="9" style="font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding-top:8px">Stats${adj?` + Adj (${adj>0?'+':''}${adj})`:''} = Total</td>
+      <td class="fp" style="font-size:14px">${(totalFP+adj)>0?'+':''}${totalFP+adj}</td>
+    </tr></tfoot>
+  </table></div>`;
+}
+
+// FIX BUG 3: Edit picks via modal, don't delete team until confirmed save
+function openPicksEdit(id){
+  EDIT_TEAM_ID=id;
+  const t=TEAMS.find(x=>x.id===id); if(!t) return;
+  document.getElementById('pe-title').textContent=`Edit Players — ${t.name}`;
+  const c=document.getElementById('pe-slots');
+  c.innerHTML='';
+  (t.teams||[]).forEach(team=>{
+    const roster=ROSTERS[team]||[];
+    const cur=t.picks[team]||'';
+    const div=document.createElement('div');
+    div.className='player-slot';
+    div.innerHTML=`<div class="slot-team">${team}</div>`;
+    const sel=document.createElement('select');
+    sel.className='slot-sel';
+    sel.dataset.team=team;
+    sel.innerHTML='<option value="">— Select player —</option>'+roster.map(p=>`<option value="${p}"${cur===p?' selected':''}>${p}</option>`).join('');
+    div.appendChild(sel);
+    c.appendChild(div);
+  });
+  document.getElementById('picks-edit-modal').classList.add('open');
+}
+
+function savePicksEdit(){
+  const t=TEAMS.find(x=>x.id===EDIT_TEAM_ID); if(!t) return;
+  document.querySelectorAll('#pe-slots select').forEach(sel=>{
+    if(sel.value) t.picks[sel.dataset.team]=sel.value;
+  });
+  recalcAll();
+  closeModal('picks-edit-modal');
+  renderMyTeams();
+  toast('Player picks updated ✓','ok');
+}
+
+function delTeam(id){
+  if(!confirm('Delete this team permanently?')) return;
+  TEAMS=TEAMS.filter(t=>t.id!==id);
+  saveAll();
+  toast('Team deleted','err');
+  renderMyTeams();
+  updateHeroStats();
+}
+
+// ═══════════════════════════════════════════════════════
+// PLAYER MODAL
+// ═══════════════════════════════════════════════════════
+function openPlayerModal(player,team){
+  document.getElementById('pm-name').textContent=player;
+  document.getElementById('pm-team').textContent=(team||'')+' · 2026 NCAA Tournament';
+  const s=STATS[player]||{};
+  const fp=calcFP(s);
+  const log=LOGS[player]||[];
+  document.getElementById('pm-stats').innerHTML=[
+    {v:fp>=0?'+'+fp:fp,l:'TOTAL FP',accent:true},
+    {v:s.pts||0,l:'TOTAL PTS'},{v:s.reb||0,l:'TOTAL REB'},
+    {v:s.ast||0,l:'TOTAL AST'},{v:s.blk||0,l:'BLK'},{v:s.stl||0,l:'STL'},
+    {v:s.gamesPlayed||0,l:'GAMES'},
+  ].map(x=>`<div class="ps-box"><div class="ps-val" style="${x.accent?'color:var(--accent)':''}">${x.v}</div><div class="ps-lbl">${x.l}</div></div>`).join('');
+  document.getElementById('pm-log').innerHTML=log.length
+    ?log.map(g=>`<tr><td>${g.opponent||'—'}</td><td style="font-family:'Barlow Condensed',sans-serif;font-weight:600;color:var(--accent2)">${g.round||'—'}</td><td>${g.date||'—'}</td><td>${g.pts||0}</td><td>${g.reb||0}</td><td>${g.ast||0}</td><td>${g.stl||0}</td><td>${g.blk||0}</td><td>${g.to||0}</td><td>${g.foul||0}</td><td class="fp">${(g.fp||0)>0?'+':''}${g.fp||0}</td></tr>`).join('')
+    :`<tr><td colspan="11" style="text-align:center;color:var(--muted);font-style:italic;padding:16px">No tournament games yet (starts March 17)</td></tr>`;
+  document.getElementById('player-modal').classList.add('open');
+}
+
+// My players tab
+function renderMyPlayers(){
+  const c=document.getElementById('games-container');
+  if(!CUR_USER){ c.innerHTML=`<div class="card" style="text-align:center;padding:40px"><p style="color:var(--muted);font-style:italic;margin-bottom:14px">Sign in to track your players</p><button class="btn btn-primary" onclick="openAuth()">Sign In</button></div>`; return; }
+  const mine=TEAMS.filter(t=>t.owner===CUR_USER);
+  if(!mine.length){ c.innerHTML=`<div class="card" style="text-align:center;padding:40px;color:var(--muted);font-style:italic">Build a team first!</div>`; return; }
+  c.innerHTML=mine.map(buildTeamStatTable).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════════════════
+function updateHeroStats(){
+  document.getElementById('hs-u').textContent=Object.keys(USERS).length;
+  document.getElementById('hs-e').textContent=TEAMS.length;
+}
+
+// ═══════════════════════════════════════════════════════
+// COMMISSIONER
+// ═══════════════════════════════════════════════════════
+function commLogin(){
+  const pw=document.getElementById('comm-pw-input').value;
+  const stored=LS.g('bb_cpw','pickles69!');
+  if(pw===stored){
+    COMM_AUTHED=true;
+    document.getElementById('comm-login-screen').style.display='none';
+    document.getElementById('comm-dashboard').style.display='block';
+    loadCommDash();
+  } else { toast('Wrong password','err'); document.getElementById('comm-pw-input').value=''; }
+}
+function commLogout(){
+  COMM_AUTHED=false;
+  document.getElementById('comm-login-screen').style.display='block';
+  document.getElementById('comm-dashboard').style.display='none';
+}
+function changeCommPw(){
+  const np=document.getElementById('new-comm-pw').value.trim();
+  if(!np||np.length<4){ toast('Min 4 chars','err'); return; }
+  LS.s('bb_cpw',np);
+  document.getElementById('new-comm-pw').value='';
+  toast('Password updated ✓','ok');
+}
+
+function applyCtrl(key,val){
+  CTRL[key]=val;
+  LS.s('bb_ctrl',CTRL);
+  document.getElementById('cs-lock').textContent=CTRL.picksLocked?'LOCKED':'AUTO';
+  document.getElementById('cs-lock').style.color=CTRL.picksLocked?'var(--red)':'var(--green)';
+  applyLockUI();
+  toast(`${key}: ${val}`,'ok');
+}
+
+function loadCommDash(){
+  loadAll(); // refresh from LS
+  document.getElementById('ctrl-lock').checked=CTRL.picksLocked||false;
+  document.getElementById('ctrl-show-lb').checked=CTRL.showLeaderboard!==false;
+  document.getElementById('ctrl-auto').checked=CTRL.autoScoring||false;
+  document.getElementById('ctrl-live').checked=CTRL.tournamentLive||false;
+  document.getElementById('cs-entries').textContent=TEAMS.length;
+  document.getElementById('cs-users').textContent=Object.keys(USERS).length;
+  document.getElementById('cs-lock').textContent=picksLocked()?'LOCKED':'OPEN';
+  document.getElementById('cs-lock').style.color=picksLocked()?'var(--red)':'var(--green)';
+  document.getElementById('announce-text').value=ANN||'';
+  renderCommEntries();
+  renderCommUsers();
+  renderCommEmails();
+  renderCommAnnouncements();
+  renderManualGamesList();
+  loadEmailConfig();
+  renderTextOverrideList();
+}
+
+function renderCommEntries(){
+  const sorted=[...TEAMS].sort((a,b)=>b.points-a.points);
+  document.getElementById('comm-entries-body').innerHTML=sorted.length?sorted.map((t,i)=>`
+    <tr data-tid="${t.id}">
+      <td><div class="rank-n" style="${i===0?'color:var(--accent2)':''}">${i+1}</div></td>
+      <td><input class="edit-text" id="ce-name-${t.id}" value="${(t.name||'').replace(/"/g,'&quot;')}" /></td>
+      <td style="font-size:11px;color:var(--muted)">${t.owner.split('@')[0]}<br>${t.owner}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">${Object.values(t.picks||{}).reduce((s,p)=>s+calcFP(STATS[p]||{}),0)}</td>
+      <td><input class="edit-pts" id="ce-adj-${t.id}" value="${t.adjustment||0}" title="+/- manual adjustment" /></td>
+      <td><div class="pts-val" style="font-size:13px" id="ce-total-${t.id}">${t.points||0}</div></td>
+      <td><input class="edit-pts" id="ce-tb-${t.id}" value="${t.tiebreaker||0}" title="Tiebreaker guess" /></td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-primary btn-sm" onclick="commSaveEntry(${t.id})">Save</button>
+        <button class="btn btn-ghost btn-sm" onclick="commViewPicks(${t.id})">Picks</button>
+        <button class="btn btn-danger btn-sm" onclick="commDelEntry(${t.id})">Del</button>
+      </td>
+    </tr>`).join('')
+  :`<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted);font-style:italic">No entries</td></tr>`;
+}
+
+function commSaveEntry(id){
+  const t=TEAMS.find(x=>x.id===id); if(!t) return;
+  const nameEl=document.getElementById('ce-name-'+id);
+  const adjEl=document.getElementById('ce-adj-'+id);
+  const tbEl=document.getElementById('ce-tb-'+id);
+  if(nameEl) t.name=nameEl.value.trim()||t.name;
+  if(adjEl) t.adjustment=parseInt(adjEl.value)||0;
+  if(tbEl)  t.tiebreaker=parseInt(tbEl.value)||t.tiebreaker;
+  t.points=calcTeamPts(t);
+  const totalEl=document.getElementById('ce-total-'+id);
+  if(totalEl) totalEl.textContent=t.points;
+  saveAll();
+  renderLB('all');
+  renderHomeLB();
+  toast(`"${t.name}" saved ✓`,'ok');
+}
+
+function saveAllEntries(){
+  TEAMS.forEach(t=>commSaveEntry(t.id));
+  toast('All entries saved ✓','ok');
+}
+
+function commViewPicks(id){
+  const t=TEAMS.find(x=>x.id===id); if(!t) return;
+  // FIX BUG 8: use a styled modal instead of alert()
+  openPicksEdit(id);
+}
+
+function commDelEntry(id){
+  const t=TEAMS.find(x=>x.id===id);
+  if(!t||!confirm(`Delete "${t.name}"?`)) return;
+  TEAMS=TEAMS.filter(x=>x.id!==id);
+  saveAll(); renderCommEntries();
+  document.getElementById('cs-entries').textContent=TEAMS.length;
+  toast(`"${t.name}" deleted`,'err');
+}
+
+function renderCommUsers(){
+  const users=Object.values(USERS);
+  document.getElementById('comm-users-list').innerHTML=users.length
+    ?users.map(u=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(37,45,63,.4)">
+      <div><div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700">${u.email.split('@')[0].charAt(0).toUpperCase()+u.email.split('@')[0].slice(1)}</div>
+      <div style="font-size:11px;color:var(--muted)">${u.email} · ${TEAMS.filter(t=>t.owner===u.email).length} team(s) · Joined ${new Date(u.joinedAt||0).toLocaleDateString()}</div></div>
+      <button class="btn btn-danger btn-sm" onclick="commDelUser('${u.email}')">Remove</button>
+    </div>`).join('')
+    :`<div style="color:var(--muted);font-style:italic;font-size:13px">No users yet</div>`;
+}
+
+function commDelUser(email){
+  if(!confirm(`Remove ${email} and all their teams?`)) return;
+  TEAMS=TEAMS.filter(t=>t.owner!==email);
+  delete USERS[email];
+  saveAll(); loadCommDash();
+  toast(`${email} removed`,'err');
+}
+
+function renderCommEmails(){
+  const emails=Object.keys(USERS);
+  document.getElementById('email-count').textContent=emails.length;
+  document.getElementById('email-list').innerHTML=emails.join('<br>')||'—';
+}
+
+function commLoadStats(){
+  const name=document.getElementById('stat-pname').value.trim();
+  if(!name){ toast('Enter player name','err'); return; }
+  const s=STATS[name]||{};
+  ['pts','reb','ast','stl','blk','to','foul'].forEach(k=>{ const el=document.getElementById('s-'+k); if(el) el.value=s[k]||0; });
+  document.getElementById('s-gp').value=s.gamesPlayed||0;
+  toast(`Loaded stats for "${name}"`,'ok');
+}
+
+function commSaveStats(){
+  const name=document.getElementById('stat-pname').value.trim();
+  if(!name){ toast('Enter player name','err'); return; }
+  const s={
+    pts:parseInt(document.getElementById('s-pts').value)||0,
+    reb:parseInt(document.getElementById('s-reb').value)||0,
+    ast:parseInt(document.getElementById('s-ast').value)||0,
+    stl:parseInt(document.getElementById('s-stl').value)||0,
+    blk:parseInt(document.getElementById('s-blk').value)||0,
+    to: parseInt(document.getElementById('s-to').value)||0,
+    foul:parseInt(document.getElementById('s-foul').value)||0,
+    gamesPlayed:parseInt(document.getElementById('s-gp').value)||0,
+  };
+  STATS[name]=s;
+  recalcAll();
+  renderCommEntries();
+  document.getElementById('stat-result').textContent=`✓ ${name}: FP = ${calcFP(s)>0?'+':''}${calcFP(s)} (PTS:${s.pts} REB:${s.reb} AST:${s.ast} STL:${s.stl} BLK:${s.blk} TO:${s.to} PF:${s.foul})`;
+  toast(`Stats saved for "${name}" ✓`,'ok');
+}
+
+function commRecalcAll(){
+  recalcAll();
+  renderCommEntries();
+  toast('All team points recalculated ✓','ok');
+}
+
+function commForceRefresh(){
+  document.getElementById('refresh-status').textContent='Refreshing ESPN…';
+  fetchGames().then(()=>{
+    document.getElementById('refresh-status').textContent='Last refresh: '+new Date().toLocaleTimeString();
+    toast('ESPN refreshed ✓','ok');
+  }).catch(()=>{
+    document.getElementById('refresh-status').textContent='ESPN unavailable at '+new Date().toLocaleTimeString();
+  });
+}
+
+function commResetStats(){
+  if(!confirm('⚠ Reset ALL player stats to 0? Cannot be undone.')) return;
+  STATS={}; LOGS={};
+  recalcAll();
+  renderCommEntries();
+  saveAll();
+  toast('All stats reset to 0','err');
+}
+
+// ═══════════════════════════════════════════════════════
+// AUTOMATED SCORING PIPELINE
+// Runs when autoScoring is ON — pulls ESPN box scores
+// and updates fantasy points for every player
+// ═══════════════════════════════════════════════════════
+
+// Fuzzy name matcher — handles ESPN abbreviations vs full names
+function fuzzyMatchPlayer(espnName, rosterNames){
+  const normalize = s => s.toLowerCase().replace(/[^a-z\s]/g,'').trim();
+  const en = normalize(espnName);
+  // Exact match first
+  let match = rosterNames.find(r => normalize(r) === en);
+  if(match) return match;
+  // Last name match
+  const enLast = en.split(' ').slice(-1)[0];
+  const candidates = rosterNames.filter(r => normalize(r).split(' ').slice(-1)[0] === enLast);
+  if(candidates.length === 1) return candidates[0];
+  // First initial + last name (ESPN sometimes shows "C. Boozer")
+  const initMatch = en.match(/^([a-z])\.\s*(.+)$/);
+  if(initMatch){
+    const [,init,last] = initMatch;
+    const found = rosterNames.find(r => {
+      const rn = normalize(r).split(' ');
+      return rn[0][0] === init && rn.slice(-1)[0] === last;
+    });
+    if(found) return found;
+  }
+  return null;
+}
+
+async function fetchBoxScore(gameId){
+  try{
+    const url = `https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/summary?event=${gameId}`;
+    const r = await fetch(url);
+    const d = await r.json();
+    return d;
+  }catch(e){ return null; }
+}
+
+function parseBoxScore(data){
+  // Returns array of {name, pts, reb, ast, stl, blk, to, foul}
+  const players = [];
+  const boxTeams = data?.boxscore?.players || data?.players || [];
+  boxTeams.forEach(teamSection => {
+    const stats = teamSection.statistics || [];
+    const athletes = stats[0]?.athletes || teamSection.athletes || [];
+    const labels = stats[0]?.labels || stats[0]?.names || [];
+    athletes.forEach(ath => {
+      if(!ath.active && ath.didNotPlay) return;
+      const name = ath.athlete?.displayName || ath.athlete?.shortName || '';
+      if(!name) return;
+      const vals = ath.stats || [];
+      const g = lbl => {
+        const i = labels.indexOf(lbl);
+        return i >= 0 ? parseInt(vals[i]) || 0 : 0;
+      };
+      players.push({
+        name,
+        pts:  g('PTS'),
+        reb:  g('REB'),
+        ast:  g('AST'),
+        stl:  g('STL'),
+        blk:  g('BLK'),
+        to:   g('TO'),
+        foul: g('PF'),
+      });
+    });
+  });
+  return players;
+}
+
+// Build a flat list of every player picked across all teams
+function getAllPickedPlayers(){
+  const picked = new Set();
+  TEAMS.forEach(t => Object.values(t.picks||{}).forEach(p => picked.add(p)));
+  return picked;
+}
+
+// Detect round from ESPN event
+function detectRound(ev){
+  const notes = (ev.competitions?.[0]?.notes||[]).map(n=>n.headline||'').join(' ').toLowerCase();
+  const name  = (ev.name||ev.shortName||'').toLowerCase();
+  const all   = notes + ' ' + name;
+  if(all.includes('first four') || all.includes('play-in')) return 'Play-In';
+  if(all.includes('first round') || all.includes('round of 64')) return 'R64';
+  if(all.includes('second round')|| all.includes('round of 32')) return 'R32';
+  if(all.includes('sweet 16')    || all.includes('sweet sixteen'))return 'S16';
+  if(all.includes('elite eight') || all.includes('elite 8'))      return 'E8';
+  if(all.includes('final four'))                                   return 'FF';
+  if(all.includes('national championship')||all.includes('championship')) return 'CHAMP';
+  return 'R64'; // default
+}
+
+let _processedGames = new Set(LS.g('bb_processed_games',[]));
+
+async function runScoringPipeline(events){
+  const pickedPlayers = getAllPickedPlayers();
+  if(!pickedPlayers.size) return; // nobody has picks yet
+  const activeEvents = events.filter(e => {
+    const state = e.status?.type?.state;
+    return (state==='in' || state==='post');
+  });
+  let anyUpdated = false;
+  for(const ev of activeEvents){
+    const gameId = ev.id;
+    const state  = ev.status?.type?.state;
+    // For finished games, only process once
+    if(state==='post' && _processedGames.has(gameId)) continue;
+    const data = await fetchBoxScore(gameId);
+    if(!data) continue;
+    const boxPlayers = parseBoxScore(data);
+    if(!boxPlayers.length) continue;
+    const round = detectRound(ev);
+    const date  = new Date(ev.competitions?.[0]?.date||ev.date||Date.now())
+                    .toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const comp  = ev.competitions?.[0];
+    const teams = comp?.competitors||[];
+    boxPlayers.forEach(bp => {
+      // Find matching roster player
+      const allRosterNames = [...pickedPlayers];
+      const matched = fuzzyMatchPlayer(bp.name, allRosterNames);
+      if(!matched) return;
+      // Get the opponent team name
+      const playerTeam = teams.find(t =>
+        Object.values(ROSTERS).some(roster =>
+          roster.some(rp => fuzzyMatchPlayer(rp,[matched]) === matched) &&
+          (t.team?.displayName||'').toLowerCase().includes(
+            Object.keys(ROSTERS).find(k=>ROSTERS[k].includes(matched))?.toLowerCase().split(' ')[0]||'_'
+          )
+        )
+      );
+      const oppTeam = teams.find(t=>t!==playerTeam);
+      const opp = oppTeam?.team?.abbreviation || oppTeam?.team?.displayName || 'Opponent';
+      // Update cumulative stats
+      if(!STATS[matched]) STATS[matched]={pts:0,reb:0,ast:0,stl:0,blk:0,to:0,foul:0,gamesPlayed:0};
+      // For live games update continuously; for finished games add once
+      if(state==='in'){
+        // Store current game stats separately to avoid double-adding
+        const liveKey = `live_${gameId}_${matched.replace(/\s/g,'_')}`;
+        const prev = LS.g(liveKey, {pts:0,reb:0,ast:0,stl:0,blk:0,to:0,foul:0});
+        // Subtract prev, add new
+        ['pts','reb','ast','stl','blk','to','foul'].forEach(k=>{
+          STATS[matched][k] = Math.max(0, (STATS[matched][k]||0) - (prev[k]||0) + (bp[k]||0));
+        });
+        LS.s(liveKey, {pts:bp.pts,reb:bp.reb,ast:bp.ast,stl:bp.stl,blk:bp.blk,to:bp.to,foul:bp.foul});
+      } else {
+        // Final — add once, mark processed
+        const doneKey = `done_${gameId}_${matched.replace(/\s/g,'_')}`;
+        if(!LS.g(doneKey,false)){
+          ['pts','reb','ast','stl','blk','to','foul'].forEach(k=>{
+            STATS[matched][k] = (STATS[matched][k]||0) + (bp[k]||0);
+          });
+          STATS[matched].gamesPlayed = (STATS[matched].gamesPlayed||0) + 1;
+          LS.s(doneKey,true);
+          // Add to game log
+          if(!LOGS[matched]) LOGS[matched]=[];
+          const alreadyLogged = LOGS[matched].some(g=>g.gameId===gameId);
+          if(!alreadyLogged){
+            LOGS[matched].push({
+              gameId, round, date, opponent:opp,
+              pts:bp.pts,reb:bp.reb,ast:bp.ast,stl:bp.stl,blk:bp.blk,to:bp.to,foul:bp.foul,
+              fp: calcFP(bp),
+            });
+          }
+        }
+      }
+      anyUpdated = true;
+    });
+    // Mark finished game as fully processed
+    if(state==='post'){
+      _processedGames.add(gameId);
+      LS.s('bb_processed_games',[..._processedGames]);
+    }
+  }
+  if(anyUpdated){
+    recalcAll();
+    saveAll();
+    document.getElementById('refresh-status').textContent='Auto-scored at '+new Date().toLocaleTimeString();
+    // Check if a round just completed for auto-email
+    checkAutoEmail(events);
+  }
+}
+
+// Track which rounds have been auto-emailed
+let _emailedRounds = new Set(LS.g('bb_emailed_rounds',[]));
+
+function checkAutoEmail(events){
+  const ROUND_LABELS = {
+    'R64':'Round of 64','R32':'Round of 32','S16':'Sweet 16',
+    'E8':'Elite Eight','FF':'Final Four','CHAMP':'Championship'
+  };
+  // Check if all games in a round are finished
+  const roundGames = {};
+  events.forEach(e=>{
+    const r = detectRound(e);
+    if(!roundGames[r]) roundGames[r]={total:0,done:0};
+    roundGames[r].total++;
+    if(e.status?.type?.state==='post') roundGames[r].done++;
+  });
+  Object.entries(roundGames).forEach(([round,counts])=>{
+    if(counts.total>0 && counts.done===counts.total && !_emailedRounds.has(round)){
+      const label = ROUND_LABELS[round]||round;
+      console.log(`Auto-email trigger: ${label} complete`);
+      // Don't auto-send without preview — just flag it
+      document.getElementById('email-status').textContent=
+        `⚡ ${label} complete — click "After ${label}" to send leaderboard email`;
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// EMAILJS SYSTEM
+// ═══════════════════════════════════════════════════════
+let EJ_CONFIG = LS.g('bb_ej',{pub:'',svc:'',tmpl:''});
+let _currentRound = '';
+
+function saveEmailConfig(){
+  EJ_CONFIG={
+    pub: document.getElementById('ej-pub').value.trim(),
+    svc: document.getElementById('ej-svc').value.trim(),
+    tmpl:document.getElementById('ej-tmpl').value.trim(),
+  };
+  LS.s('bb_ej',EJ_CONFIG);
+  if(EJ_CONFIG.pub){
+    try{ emailjs.init(EJ_CONFIG.pub); }catch(e){}
+    document.getElementById('ej-config-status').textContent='✓ Saved & initialized';
+    document.getElementById('ej-config-status').style.color='var(--green)';
+  }
+  toast('EmailJS config saved ✓','ok');
+}
+
+function loadEmailConfig(){
+  if(EJ_CONFIG.pub){ document.getElementById('ej-pub').value=EJ_CONFIG.pub; }
+  if(EJ_CONFIG.svc){ document.getElementById('ej-svc').value=EJ_CONFIG.svc; }
+  if(EJ_CONFIG.tmpl){document.getElementById('ej-tmpl').value=EJ_CONFIG.tmpl; }
+  if(EJ_CONFIG.pub){
+    try{ emailjs.init(EJ_CONFIG.pub); }catch(e){}
+  }
+}
+
+function buildEmailData(roundName, targetUser=null){
+  const sorted=[...TEAMS].sort((a,b)=>{
+    if(b.points!==a.points) return b.points-a.points;
+    return Math.abs((a.tiebreaker||999)-145)-Math.abs((b.tiebreaker||999)-145);
+  });
+  const top10 = sorted.slice(0,10);
+  const lbText = top10.map((t,i)=>`${i+1}. ${t.name} (${t.owner.split('@')[0]}) — ${t.points} pts`).join('\n');
+  const lbHtml = top10.map((t,i)=>`
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee;font-family:sans-serif;font-size:13px">
+      <span><strong style="color:${i===0?'#c9950a':i===1?'#888':i===2?'#a07050':'#666'}">${i+1}.</strong> ${t.name} <span style="color:#999;font-size:11px">${t.owner.split('@')[0]}</span></span>
+      <strong style="color:#ff6b1a">${t.points} pts</strong>
+    </div>`).join('');
+
+  const getUserData = (email) => {
+    const myTeams = sorted.filter(t=>t.owner===email);
+    const bestTeam = myTeams[0];
+    const rank = bestTeam ? sorted.findIndex(t=>t.id===bestTeam.id)+1 : null;
+    return { bestTeam, rank, myTeams };
+  };
+
+  return { sorted, top10, lbText, lbHtml, getUserData };
+}
+
+function previewAndSend(roundName){
+  if(!Object.keys(USERS).length){ toast('No registered users yet','err'); return; }
+  _currentRound = roundName;
+  const emails = Object.keys(USERS);
+  const { top10, lbHtml, getUserData } = buildEmailData(roundName);
+
+  // Populate preview modal
+  document.getElementById('ep-meta').textContent=`${roundName} · ${emails.length} recipient(s)`;
+  document.getElementById('ep-round-title').textContent=`${roundName} is Complete! 🏀`;
+  document.getElementById('ep-greeting').textContent=`Hi [Player Name], here's your current standing after the ${roundName}:`;
+  document.getElementById('ep-count').textContent=emails.length;
+
+  // Standing preview (use first user as example)
+  const exUser = emails[0];
+  const { bestTeam, rank } = getUserData(exUser);
+  document.getElementById('ep-your-standing').innerHTML = bestTeam
+    ? `<div>${bestTeam.name}</div><div style="font-size:14px;color:#666;margin-top:4px">Rank <strong>#${rank}</strong> of ${TEAMS.length} · <strong style="color:#ff6b1a">${bestTeam.points} pts</strong></div>`
+    : `<div style="color:#999">No teams entered</div>`;
+
+  document.getElementById('ep-leaderboard').innerHTML = lbHtml;
+  document.getElementById('ep-link').href = window.location.href;
+  document.getElementById('ep-footer-note').textContent = `${roundName} · Bracket Boss 2026`;
+
+  // Show config warning if not set up
+  if(!EJ_CONFIG.pub||!EJ_CONFIG.svc||!EJ_CONFIG.tmpl){
+    document.getElementById('ep-send-status').textContent='⚠ EmailJS not configured — save your keys in the Email section above first';
+    document.getElementById('ep-send-btn').disabled=true;
+    document.getElementById('ep-test-btn').disabled=true;
+  } else {
+    document.getElementById('ep-send-status').textContent='';
+    document.getElementById('ep-send-btn').disabled=false;
+    document.getElementById('ep-test-btn').disabled=false;
+  }
+
+  document.getElementById('email-preview-modal').classList.add('open');
+}
+
+async function sendTestEmail(){
+  if(!CUR_USER){ toast('Sign in first','err'); return; }
+  if(!EJ_CONFIG.pub||!EJ_CONFIG.svc||!EJ_CONFIG.tmpl){
+    toast('Configure EmailJS keys first','err'); return;
+  }
+  const { lbText, getUserData } = buildEmailData(_currentRound);
+  const { bestTeam, rank } = getUserData(CUR_USER);
+  const name = CUR_USER.split('@')[0];
+  const params = {
+    to_email:  CUR_USER,
+    to_name:   name.charAt(0).toUpperCase()+name.slice(1),
+    round_name:_currentRound,
+    your_team: bestTeam?.name || 'No team',
+    your_rank: rank ? `#${rank} of ${TEAMS.length}` : '—',
+    your_pts:  bestTeam?.points || 0,
+    leaderboard: lbText,
+    site_url:  window.location.href,
+  };
+  document.getElementById('ep-send-status').textContent='Sending test…';
+  try{
+    await emailjs.send(EJ_CONFIG.svc, EJ_CONFIG.tmpl, params);
+    document.getElementById('ep-send-status').textContent=`✓ Test sent to ${CUR_USER}`;
+    document.getElementById('ep-send-status').style.color='var(--green)';
+    toast('Test email sent! Check your inbox ✓','ok');
+  }catch(e){
+    document.getElementById('ep-send-status').textContent=`Error: ${e.text||e.message||'Send failed'}`;
+    document.getElementById('ep-send-status').style.color='var(--red)';
+    toast('Send failed — check EmailJS keys','err');
+  }
+}
+
+async function sendEmailBlast(){
+  if(!EJ_CONFIG.pub||!EJ_CONFIG.svc||!EJ_CONFIG.tmpl){
+    toast('Configure EmailJS keys first','err'); return;
+  }
+  const emails = Object.keys(USERS);
+  if(!emails.length){ toast('No registered users','err'); return; }
+  const { lbText, getUserData } = buildEmailData(_currentRound);
+  document.getElementById('ep-send-btn').disabled=true;
+  document.getElementById('ep-send-btn').textContent='Sending…';
+  let sent=0, failed=0;
+  for(const email of emails){
+    const { bestTeam, rank } = getUserData(email);
+    const name = email.split('@')[0];
+    const params = {
+      to_email:   email,
+      to_name:    name.charAt(0).toUpperCase()+name.slice(1),
+      round_name: _currentRound,
+      your_team:  bestTeam?.name || 'No team entered',
+      your_rank:  rank ? `#${rank} of ${TEAMS.length}` : '—',
+      your_pts:   bestTeam?.points || 0,
+      leaderboard:lbText,
+      site_url:   window.location.href,
+    };
+    try{
+      await emailjs.send(EJ_CONFIG.svc, EJ_CONFIG.tmpl, params);
+      sent++;
+      document.getElementById('ep-send-status').textContent=`Sending… ${sent}/${emails.length}`;
+    }catch(e){
+      failed++;
+      console.warn(`Failed to send to ${email}:`,e);
+    }
+    // Small delay to avoid rate limiting
+    await new Promise(res=>setTimeout(res,300));
+  }
+  // Mark round as emailed
+  _emailedRounds.add(_currentRound);
+  LS.s('bb_emailed_rounds',[..._emailedRounds]);
+
+  const msg = `✓ Sent ${sent}/${emails.length}${failed?` (${failed} failed)`:''}`;
+  document.getElementById('ep-send-status').textContent=msg;
+  document.getElementById('ep-send-status').style.color='var(--green)';
+  document.getElementById('ep-send-btn').textContent=`🚀 Send to All ${emails.length} Users`;
+  document.getElementById('ep-send-btn').disabled=false;
+  document.getElementById('email-status').textContent=`Last blast: "${_currentRound}" — ${msg}`;
+  toast(msg,'ok');
+}
+
+async function testEmailSelf(){
+  // Quick test from the config area (before opening preview)
+  if(!CUR_USER){ toast('Sign in first','err'); return; }
+  _currentRound='Test';
+  await sendTestEmail();
+}
+
+function queueEmail(round){ previewAndSend(round); }
+
+// ═══════════════════════════════════════════════════════
+// ANNOUNCEMENTS — BANNER + BULLETIN BOARD
+// ═══════════════════════════════════════════════════════
+function saveAnnouncement(){
+  ANN=document.getElementById('announce-text').value.trim();
+  LS.s('bb_ann',ANN);
+  const bar=document.getElementById('announce-bar');
+  bar.textContent=ANN?'📢 '+ANN:'';
+  bar.classList.toggle('on',!!ANN);
+  toast('Banner updated ✓','ok');
+}
+function clearAnnouncement(){
+  document.getElementById('announce-text').value='';
+  ANN=''; LS.s('bb_ann','');
+  document.getElementById('announce-bar').classList.remove('on');
+  toast('Banner cleared','ok');
+}
+function postAnnouncement(){
+  const title=document.getElementById('ann-post-title').value.trim();
+  const body=document.getElementById('ann-post-body').value.trim();
+  const pinned=document.getElementById('ann-post-pin').checked;
+  if(!title&&!body){toast('Enter a title or message','err');return;}
+  ANNOUNCEMENTS.unshift({id:Date.now(),title:title||'Update',body,pinned,ts:Date.now()});
+  ANNOUNCEMENTS.sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+  saveAll();
+  document.getElementById('ann-post-title').value='';
+  document.getElementById('ann-post-body').value='';
+  document.getElementById('ann-post-pin').checked=false;
+  renderAnnouncementsPage();
+  renderCommAnnouncements();
+  toast('Announcement posted ✓','ok');
+}
+function deleteAnnouncement(id){
+  if(!confirm('Delete this announcement?'))return;
+  ANNOUNCEMENTS=ANNOUNCEMENTS.filter(a=>a.id!==id);
+  saveAll();
+  renderAnnouncementsPage();
+  renderCommAnnouncements();
+  toast('Deleted','err');
+}
+function renderAnnouncementsPage(){
+  const c=document.getElementById('announcements-feed');
+  if(!ANNOUNCEMENTS.length){
+    c.innerHTML='<div class="card" style="text-align:center;padding:40px;color:var(--muted);font-style:italic">No announcements yet — check back soon!</div>';
+    return;
+  }
+  const sorted=[...ANNOUNCEMENTS].sort((a,b)=>(b.pinned-a.pinned)||(b.ts-a.ts));
+  c.innerHTML=sorted.map(a=>`
+    <div class="ann-card${a.pinned?' pinned':''}">
+      ${a.pinned?'<div style=\"font-family:\' Barlow Condensed\',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:6px\">📌 PINNED</div>':''}
+      <div class="ann-title">${a.title}</div>
+      <div class="ann-meta">${new Date(a.ts).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</div>
+      <div class="ann-body">${a.body.replace(/\n/g,'<br>')}</div>
+    </div>`).join('');
+}
+function renderCommAnnouncements(){
+  const c=document.getElementById('comm-ann-list');
+  if(!c)return;
+  if(!ANNOUNCEMENTS.length){c.innerHTML='<div style="color:var(--muted);font-size:12px;font-style:italic">No posts yet</div>';return;}
+  c.innerHTML=ANNOUNCEMENTS.map(a=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(37,45,63,.4)">
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700">${a.pinned?'📌 ':''}${a.title}</div>
+        <div style="font-size:11px;color:var(--muted)">${new Date(a.ts).toLocaleDateString()} · ${a.body.substring(0,60)}${a.body.length>60?'…':''}</div>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="deleteAnnouncement(${a.id})">Del</button>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// MANUAL GAME ENTRY
+// ═══════════════════════════════════════════════════════
+function addManualGame(){
+  const t1=document.getElementById('mg-t1').value.trim();
+  const t2=document.getElementById('mg-t2').value.trim();
+  const s1=document.getElementById('mg-s1').value||'0';
+  const s2=document.getElementById('mg-s2').value||'0';
+  const status=document.getElementById('mg-status').value;
+  const time=document.getElementById('mg-time').value.trim();
+  const round=document.getElementById('mg-round').value.trim();
+  if(!t1||!t2){toast('Both team names required','err');return;}
+  MANUAL_GAMES.unshift({id:Date.now(),t1,t2,s1,s2,status,time,round,createdAt:Date.now()});
+  saveAll();
+  ['mg-t1','mg-t2','mg-s1','mg-s2','mg-time','mg-round'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('mg-status').value='pre';
+  renderManualGamesList();
+  renderManualGamesInScores();
+  toast(`Game added: ${t1} vs ${t2} ✓`,'ok');
+}
+function deleteManualGame(id){
+  MANUAL_GAMES=MANUAL_GAMES.filter(g=>g.id!==id);
+  saveAll();renderManualGamesList();renderManualGamesInScores();
+  toast('Game removed','err');
+}
+function updateManualGame(id,field,val){
+  const g=MANUAL_GAMES.find(x=>x.id===id);
+  if(!g)return;
+  g[field]=val;
+  saveAll();
+  renderManualGamesInScores();
+}
+function renderManualGamesList(){
+  const c=document.getElementById('manual-games-list');
+  if(!c)return;
+  if(!MANUAL_GAMES.length){c.innerHTML='<div style="color:var(--muted);font-size:12px;font-style:italic;padding:8px 0">No games entered yet</div>';return;}
+  c.innerHTML=MANUAL_GAMES.map(g=>`
+    <div style="display:grid;grid-template-columns:1fr auto 1fr auto 90px 100px auto;gap:6px;align-items:center;padding:8px 10px;background:var(--raised);border:1px solid var(--border);margin-bottom:6px">
+      <input class="ge-input" value="${g.t1}" placeholder="Team 1" onchange="updateManualGame(${g.id},'t1',this.value)" />
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;color:var(--dim);text-align:center;padding:0 4px">vs</div>
+      <input class="ge-input" value="${g.t2}" placeholder="Team 2" onchange="updateManualGame(${g.id},'t2',this.value)" />
+      <div style="display:flex;gap:4px;align-items:center">
+        <input class="ge-score" value="${g.s1}" placeholder="0" onchange="updateManualGame(${g.id},'s1',this.value)" />
+        <span style="color:var(--dim);font-size:10px">–</span>
+        <input class="ge-score" value="${g.s2}" placeholder="0" onchange="updateManualGame(${g.id},'s2',this.value)" />
+      </div>
+      <select class="ge-select" onchange="updateManualGame(${g.id},'status',this.value)">
+        <option value="pre"  ${g.status==='pre' ?'selected':''}>Upcoming</option>
+        <option value="in"   ${g.status==='in'  ?'selected':''}>🔴 Live</option>
+        <option value="post" ${g.status==='post'?'selected':''}>Final</option>
+      </select>
+      <input class="ge-input" value="${g.time||''}" placeholder="3/19 12:15 ET" onchange="updateManualGame(${g.id},'time',this.value)" />
+      <button class="btn btn-danger btn-sm" onclick="deleteManualGame(${g.id})">✕</button>
+    </div>`).join('');
+}
+function renderManualGamesInScores(){
+  const c=document.getElementById('manual-games-scores');
+  if(!c)return;
+  if(!MANUAL_GAMES.length){c.innerHTML='';return;}
+  c.innerHTML=`<div class="g3">${
+    MANUAL_GAMES.map(g=>{
+      const live=g.status==='in',final=g.status==='post',pre=g.status==='pre';
+      const aNum=parseInt(g.s1)||0,hNum=parseInt(g.s2)||0;
+      return `<div class="game-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          ${g.round?`<div class="game-round-tag">${g.round}</div>`:'<div></div>'}
+          ${live?'<div class="live-badge"><div class="live-dot"></div>LIVE</div>':''}
+          ${final?`<div style="font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;color:var(--muted)">FINAL</div>`:''}
+          ${pre&&g.time?`<div class="game-time-tag">${g.time}</div>`:''}
+        </div>
+        <div class="game-score-row">
+          <div class="team-blk">
+            <div class="team-abbr" style="font-size:14px;line-height:1.2">${g.t1}</div>
+          </div>
+          <div class="score-ctr">
+            ${(live||final)&&(g.s1||g.s2)?`<div class="score-nums"><span class="${aNum>hNum?'win':''}">${g.s1}</span><span class="sep">–</span><span class="${hNum>aNum?'win':''}">${g.s2}</span></div>`:'<div class="score-nums" style="font-size:18px;color:var(--muted)">vs</div>'}
+          </div>
+          <div class="team-blk" style="text-align:right">
+            <div class="team-abbr" style="font-size:14px;line-height:1.2">${g.t2}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')
+  }</div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// LIGHT / DARK THEME
+// ═══════════════════════════════════════════════════════
+function toggleTheme(){
+  const isLight = document.body.classList.toggle('light-mode');
+  document.getElementById('theme-btn').textContent = isLight ? '🌙' : '☀️';
+  LS.s('bb_theme', isLight ? 'light' : 'dark');
+}
+function initTheme(){
+  const saved = LS.g('bb_theme','dark');
+  if(saved==='light'){
+    document.body.classList.add('light-mode');
+    document.getElementById('theme-btn').textContent='🌙';
+  } else {
+    document.getElementById('theme-btn').textContent='☀️';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// RULES COLLAPSIBLE
+// ═══════════════════════════════════════════════════════
+function toggleRules(){
+  const body = document.getElementById('rules-body');
+  const icon = document.getElementById('rules-icon');
+  body.classList.toggle('open');
+  icon.classList.toggle('open');
+}
+
+// ═══════════════════════════════════════════════════════
+// COMMISSIONER DOUBLE-CLICK TO EDIT ANY TEXT
+// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// PRE-LOAD TOURNAMENT GAMES (manual, shown in scores)
+// Only seeds if MANUAL_GAMES is empty (first load)
+// ═══════════════════════════════════════════════════════
+function seedTournamentGames(){
+  // Use a permanent flag so re-seeding never happens even if games are deleted
+  if(LS.g('bb_seeded','0')==='1') return;
+  LS.s('bb_seeded','1');
+  const thursday = [
+    {t1:'No. 8 Ohio State',  t2:'No. 9 TCU',           s1:'',s2:'',status:'pre',time:'12:15 PM ET · Thu 3/19 · CBS',    round:'Round of 64 — EAST'},
+    {t1:'No. 4 Nebraska',    t2:'No. 13 Troy',          s1:'',s2:'',status:'pre',time:'12:40 PM ET · Thu 3/19 · TruTV',  round:'Round of 64 — SOUTH'},
+    {t1:'No. 6 Louisville',  t2:'No. 11 South Florida', s1:'',s2:'',status:'pre',time:'1:30 PM ET · Thu 3/19 · TNT',     round:'Round of 64 — EAST'},
+    {t1:'No. 5 Wisconsin',   t2:'No. 12 High Point',    s1:'',s2:'',status:'pre',time:'1:50 PM ET · Thu 3/19 · TBS',     round:'Round of 64 — WEST'},
+    {t1:'No. 1 Duke',        t2:'No. 16 Siena',         s1:'',s2:'',status:'pre',time:'2:50 PM ET · Thu 3/19 · CBS',     round:'Round of 64 — EAST'},
+    {t1:'No. 5 Vanderbilt',  t2:'No. 12 McNeese',       s1:'',s2:'',status:'pre',time:'3:15 PM ET · Thu 3/19 · TruTV',   round:'Round of 64 — SOUTH'},
+    {t1:'No. 3 Michigan State',t2:'No. 14 North Dakota State',s1:'',s2:'',status:'pre',time:'4:05 PM ET · Thu 3/19',     round:'Round of 64 — EAST'},
+    {t1:'No. 4 Arkansas',    t2:'No. 13 Hawaii',        s1:'',s2:'',status:'pre',time:'4:25 PM ET · Thu 3/19 · TBS',     round:'Round of 64 — WEST'},
+    {t1:'No. 6 North Carolina',t2:'No. 11 VCU',         s1:'',s2:'',status:'pre',time:'6:50 PM ET · Thu 3/19 · TNT',     round:'Round of 64 — SOUTH'},
+    {t1:'No. 1 Michigan',    t2:'No. 16 UMBC / Howard', s1:'',s2:'',status:'pre',time:'7:10 PM ET · Thu 3/19 · CBS',     round:'Round of 64 — MIDWEST'},
+    {t1:'No. 6 BYU',         t2:'No. 11 Texas / NC State',s1:'',s2:'',status:'pre',time:'7:25 PM ET · Thu 3/19 · TBS',  round:'Round of 64 — WEST'},
+    {t1:'No. 7 Saint Mary\'s',t2:'No. 10 Texas A&M',   s1:'',s2:'',status:'pre',time:'7:35 PM ET · Thu 3/19 · TruTV',   round:'Round of 64 — SOUTH'},
+    {t1:'No. 3 Illinois',    t2:'No. 14 Penn',          s1:'',s2:'',status:'pre',time:'9:25 PM ET · Thu 3/19 · TNT',     round:'Round of 64 — SOUTH'},
+    {t1:'No. 8 Georgia',     t2:'No. 9 Saint Louis',    s1:'',s2:'',status:'pre',time:'9:45 PM ET · Thu 3/19 · CBS',     round:'Round of 64 — MIDWEST'},
+    {t1:'No. 3 Gonzaga',     t2:'No. 14 Kennesaw State',s1:'',s2:'',status:'pre',time:'10:00 PM ET · Thu 3/19 · TBS',    round:'Round of 64 — WEST'},
+    {t1:'No. 2 Houston',     t2:'No. 15 Idaho',         s1:'',s2:'',status:'pre',time:'10:10 PM ET · Thu 3/19 · TruTV',  round:'Round of 64 — SOUTH'},
+  ];
+  const friday = [
+    {t1:'No. 13 Hofstra',    t2:'No. 4 Alabama',        s1:'',s2:'',status:'pre',time:'TBD · Fri 3/21',  round:'Round of 64 — MIDWEST'},
+    {t1:'No. 16 LIU Brooklyn',t2:'No. 1 Arizona',       s1:'',s2:'',status:'pre',time:'TBD · Fri 3/21',  round:'Round of 64 — WEST'},
+    {t1:'No. 9 Iowa',        t2:'No. 8 Clemson',        s1:'',s2:'',status:'pre',time:'TBD · Fri 3/21',  round:'Round of 64 — SOUTH'},
+    {t1:'No. 15 Furman',     t2:'No. 2 Connecticut',    s1:'',s2:'',status:'pre',time:'TBD · Fri 3/21',  round:'Round of 64 — EAST'},
+    {t1:'No. 16 TBD (Play-in)',t2:'No. 1 Florida',      s1:'',s2:'',status:'pre',time:'TBD · Fri 3/21',  round:'Round of 64 — SOUTH'},
+    {t1:'No. 15 Tennessee St.',t2:'No. 2 Iowa State',   s1:'',s2:'',status:'pre',time:'TBD · Fri 3/21',  round:'Round of 64 — MIDWEST'},
+    {t1:'No. 13 Cal Baptist', t2:'No. 4 Kansas',        s1:'',s2:'',status:'pre',time:'TBD · Fri 3/21',  round:'Round of 64 — EAST'},
+    {t1:'No. 10 Santa Clara', t2:'No. 7 Kentucky',      s1:'',s2:'',status:'pre',time:'TBD · Fri 3/21',  round:'Round of 64 — MIDWEST'},
+    {t1:'No. 10 Missouri',   t2:'No. 7 Miami (FL)',     s1:'',s2:'',status:'pre',time:'TBD · Fri 3/21',  round:'Round of 64 — WEST'},
+    {t1:'No. 15 Queens (NC)',  t2:'No. 2 Purdue',       s1:'',s2:'',status:'pre',time:'TBD · Fri 3/21',  round:'Round of 64 — WEST'},
+    {t1:'No. 12 Northern Iowa',t2:'No. 5 St. John\'s',  s1:'',s2:'',status:'pre',time:'TBD · Fri 3/21',  round:'Round of 64 — EAST'},
+    {t1:'No. 11 TBD (Play-in)',t2:'No. 6 Tennessee',    s1:'',s2:'',status:'pre',time:'TBD · Fri 3/21',  round:'Round of 64 — MIDWEST'},
+    {t1:'No. 12 Akron',      t2:'No. 5 Texas Tech',     s1:'',s2:'',status:'pre',time:'TBD · Fri 3/21',  round:'Round of 64 — MIDWEST'},
+    {t1:'No. 10 UCF',        t2:'No. 7 UCLA',           s1:'',s2:'',status:'pre',time:'TBD · Fri 3/21',  round:'Round of 64 — EAST'},
+    {t1:'No. 9 Utah State',  t2:'No. 8 Villanova',      s1:'',s2:'',status:'pre',time:'TBD · Fri 3/21',  round:'Round of 64 — WEST'},
+    {t1:'No. 14 Wright State',t2:'No. 3 Virginia',      s1:'',s2:'',status:'pre',time:'TBD · Fri 3/21',  round:'Round of 64 — MIDWEST'},
+  ];
+  const all = [...thursday,...friday];
+  all.forEach((g,i)=>{
+    MANUAL_GAMES.push({id:Date.now()+i, ...g, createdAt:Date.now()+i});
+  });
+  saveAll();
+}
+
+
+// ═══════════════════════════════════════════════════════
+// STATIC TEXT OVERRIDES
+// ═══════════════════════════════════════════════════════
+
+// Every overridable piece of static text on the site
+// key: unique ID, label: shown in commissioner, default: original text, selector: DOM element to update
+const TEXT_FIELDS = [
+  // Hero
+  { key:'hero_eyebrow',   label:'Hero — Eyebrow text',          def:'2026 NCAA Men\'s Basketball Tournament',   sel:'.hero-eyebrow' },
+  { key:'hero_title_em',  label:'Hero — Title line 1 (small)',   def:'Fantasy',                                  sel:'.hero-title em' },
+  { key:'hero_title',     label:'Hero — Title line 2 (big)',     def:'March Madness',                            sel:'.hero-title',   skipChildren:true },
+  { key:'hero_sub',       label:'Hero — Subtitle',               def:'Pick teams & players · Score live stats · Win the bracket', sel:'.hero-sub' },
+  { key:'hero_stat_lock', label:'Hero — Lock stat label',        def:'Lock 12:15 PM ET',                         sel:'.hero-stat:last-child .hero-stat-l' },
+  // Rules
+  { key:'rules_hed',      label:'Rules — Section heading',       def:'How to Play — Rules & Scoring',            sel:'.rules-toggle-hed' },
+  { key:'rules_s1',       label:'Rules — Step 1 text',           def:'Create an account with your email. Your email auto-generates your team name — jake@gmail.com becomes "Jake\'s Team". You can create multiple teams.', sel:'.rules-step:nth-child(1) .rules-step-text', html:true },
+  { key:'rules_s2',       label:'Rules — Step 2 text',           def:'Pick 16 teams from all 68 NCAA Tournament teams across four regions (East, West, South, Midwest). You must select exactly 16. Play-in game teams are available to pick — their stats count from the first tip-off.', sel:'.rules-step:nth-child(2) .rules-step-text', html:true },
+  { key:'rules_s3',       label:'Rules — Step 3 text',           def:'Pick 1 player per team. That player earns you fantasy points based on their real stats every time their team plays in the tournament. If their team gets eliminated, they stop scoring — but all points already earned stay.', sel:'.rules-step:nth-child(3) .rules-step-text', html:true },
+  { key:'rules_s4',       label:'Rules — Step 4 scoring',        def:'Fantasy scoring: <span style="color:var(--green)">+1 point</span> for every Point, Assist, Rebound, Block, and Steal your player records. <span style="color:var(--red)">−1 point</span> for every Foul and Turnover. Points accumulate across the entire tournament.', sel:'.rules-step:nth-child(4) .rules-step-text', html:true },
+  { key:'rules_s5',       label:'Rules — Step 5 tiebreaker',     def:'Tiebreaker: When locking in your team you\'ll guess the total combined points scored in the <strong>April 6 National Championship game</strong>. If two entries tie on fantasy points, whoever guessed closest wins.', sel:'.rules-step:nth-child(5) .rules-step-text', html:true },
+  { key:'rules_s6',       label:'Rules — Step 6 lock time',      def:'Picks lock at 12:15 PM ET on Thursday March 19 — tip-off of the first Round of 64 game (Ohio State vs TCU). You can update your <em>player picks</em> any time before that deadline, but your 16 teams are locked once submitted. Play-in games on March 17–18 count, so pick wisely!', sel:'.rules-step:nth-child(6) .rules-step-text', html:true },
+  // Scoring card
+  { key:'tb_desc',        label:'Home — Tiebreaker description', def:'Closest guess to total combined points in the April 6 Championship breaks ties.', sel:'.tb-desc-text' },
+  { key:'lock_note',      label:'Home — Lock time note',         def:'Play-in games DO count. Picks lock 12:15 PM ET, March 19.', sel:'.lock-note-text' },
+  // Nav labels
+  { key:'nav_home',       label:'Nav — Home label',              def:'Home',         sel:'.nav-btn:nth-child(1)' },
+  { key:'nav_build',      label:'Nav — Build Team label',        def:'Build Team',   sel:'.nav-btn:nth-child(2)' },
+  { key:'nav_bracket',    label:'Nav — Bracket label',           def:'Live Bracket', sel:'.nav-btn:nth-child(3)' },
+  { key:'nav_scores',     label:'Nav — Scores label',            def:'Live Scores',  sel:'.nav-btn:nth-child(4)' },
+  { key:'nav_lb',         label:'Nav — Leaderboard label',       def:'Leaderboard',  sel:'.nav-btn:nth-child(5)' },
+  { key:'nav_myteams',    label:'Nav — My Teams label',          def:'My Teams',     sel:'.nav-btn:nth-child(6)' },
+  { key:'nav_news',       label:'Nav — News label',              def:'📣 News',       sel:'.nav-btn:nth-child(7)' },
+  // Build page
+  { key:'build_sub',      label:'Build — Subtitle',              def:'All 68 teams · 1 player each · lock in before 12:15 PM ET March 19', sel:'#page-build .sec-head div:last-child' },
+  { key:'tb_hed',         label:'Build — Tiebreaker heading',    def:'🏆 Championship Tiebreaker', sel:'.tb-hed' },
+  { key:'tb_body',        label:'Build — Tiebreaker description',def:'If two fantasy teams tie, the closest guess to the actual combined score in the <strong style="color:var(--accent2)">April 6 National Championship</strong> wins. Historic average: ~145 combined pts.', sel:'.tb-desc', html:true },
+  // Bracket
+  { key:'bracket_sub',    label:'Bracket — Subtitle',            def:'Winners auto-fill from ESPN results after March 17 · No results pre-filled', sel:'.bracket-sub' },
+  // Site name
+  { key:'site_name',      label:'Site — Name in header',         def:'BRACKET BOSS', sel:'.wordmark', skipChildren:true },
+];
+
+let TEXT_OVERRIDES = LS.g('bb_text_overrides', {});
+
+// Apply all saved overrides to the DOM
+function applyTextOverrides(){
+  TEXT_FIELDS.forEach(f=>{
+    const val   = TEXT_OVERRIDES[f.key];
+    const color = TEXT_OVERRIDES[f.key+'_color'];
+    const els   = document.querySelectorAll(f.sel);
+    els.forEach(el=>{
+      if(val){
+        if(f.skipChildren){
+          const textNodes = [...el.childNodes].filter(n=>n.nodeType===3);
+          if(textNodes.length) textNodes[0].textContent = val;
+          else if(f.html) el.innerHTML = val;
+          else el.textContent = val;
+        } else if(f.html){
+          el.innerHTML = val;
+        } else {
+          el.textContent = val;
+        }
+      }
+      // Apply color override regardless of text override
+      if(color){
+        el.style.color = color;
+      } else {
+        el.style.color = ''; // reset to CSS default
+      }
+    });
+  });
+}
+
+// Render the override editor in commissioner panel
+function renderTextOverrideList(){
+  const c = document.getElementById('text-override-list');
+  if(!c) return;
+
+  // Group by category
+  const groups = [
+    { label:'🏠 Hero Section',    keys:['hero_eyebrow','hero_title_em','hero_title','hero_sub','hero_stat_lock'] },
+    { label:'📖 Rules',           keys:['rules_hed','rules_s1','rules_s2','rules_s3','rules_s4','rules_s5','rules_s6'] },
+    { label:'🗂 Home Cards',       keys:['tb_desc','lock_note'] },
+    { label:'🧭 Navigation',      keys:['nav_home','nav_build','nav_bracket','nav_scores','nav_lb','nav_myteams','nav_news'] },
+    { label:'🏀 Build Page',      keys:['build_sub','tb_hed','tb_body'] },
+    { label:'🏆 Bracket',         keys:['bracket_sub'] },
+    { label:'🔤 Site Name',       keys:['site_name'] },
+  ];
+
+  c.innerHTML = groups.map(g=>`
+    <div style="margin-bottom:16px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)">${g.label}</div>
+      ${g.keys.map(k=>{
+        const f = TEXT_FIELDS.find(x=>x.key===k);
+        if(!f) return '';
+        const cur = TEXT_OVERRIDES[k] || '';
+        const isOverridden = !!cur;
+        const isLong = f.def.length > 80 || f.html;
+        return `<div style="margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <label style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${isOverridden?'var(--accent2)':'var(--muted)'}">
+              ${f.label}${isOverridden?' ✱':''}
+            </label>
+            ${isOverridden?`<button class="btn btn-ghost btn-sm" style="font-size:9px;padding:2px 8px" onclick="resetOneOverride('${k}')">↺ Reset</button>`:''}
+          </div>
+          ${isLong
+            ? `<textarea class="comm-ta" id="ov-${k}" placeholder="${f.def.replace(/"/g,'&quot;').replace(/<[^>]+>/g,'')}" style="min-height:60px;font-size:12px">${cur||''}</textarea>`
+            : `<input type="text" class="fm-input" id="ov-${k}" placeholder="${f.def.replace(/"/g,'&quot;').replace(/<[^>]+>/g,'')}" value="${cur||''}" style="font-size:13px"/>`
+          }
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--muted);user-select:none">
+              <input type="checkbox" id="ovc-${k}" onchange="toggleColorPicker('${k}')" ${TEXT_OVERRIDES[k+'_color']?'checked':''} style="cursor:pointer"/>
+              Custom color
+            </label>
+            <input type="color" id="ovcolor-${k}"
+              value="${TEXT_OVERRIDES[k+'_color']||'#ff6b1a'}"
+              style="width:32px;height:22px;border:1px solid var(--border);background:transparent;cursor:pointer;padding:1px;display:${TEXT_OVERRIDES[k+'_color']?'block':'none'}"
+              oninput="previewColor('${k}',this.value)"
+              title="Pick text color"
+            />
+            ${TEXT_OVERRIDES[k+'_color']?`<span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)">${TEXT_OVERRIDES[k+'_color']}</span>`:''}
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;font-style:italic">Default: ${f.def.replace(/<[^>]+>/g,'').substring(0,80)}${f.def.length>80?'…':''}</div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+function saveTextOverrides(){
+  TEXT_FIELDS.forEach(f=>{
+    // Save text
+    const el = document.getElementById('ov-'+f.key);
+    if(el){
+      const val = el.value !== undefined ? el.value.trim() : el.textContent.trim();
+      if(val && val !== f.def) {
+        TEXT_OVERRIDES[f.key] = val;
+      } else {
+        delete TEXT_OVERRIDES[f.key];
+      }
+    }
+    // Save color
+    const cb    = document.getElementById('ovc-'+f.key);
+    const cpick = document.getElementById('ovcolor-'+f.key);
+    if(cb && cpick){
+      if(cb.checked && cpick.value){
+        TEXT_OVERRIDES[f.key+'_color'] = cpick.value;
+      } else {
+        delete TEXT_OVERRIDES[f.key+'_color'];
+      }
+    }
+  });
+  LS.s('bb_text_overrides', TEXT_OVERRIDES);
+  applyTextOverrides();
+  renderTextOverrideList();
+  const count = Object.keys(TEXT_OVERRIDES).length;
+  document.getElementById('override-save-status').textContent = `✓ Saved ${count} override${count!==1?'s':''} at ${new Date().toLocaleTimeString()}`;
+  toast('Text overrides saved ✓','ok');
+}
+
+// Show/hide the color picker when checkbox toggled
+function toggleColorPicker(key){
+  const cb    = document.getElementById('ovc-'+key);
+  const cpick = document.getElementById('ovcolor-'+key);
+  if(!cb || !cpick) return;
+  cpick.style.display = cb.checked ? 'block' : 'none';
+  if(!cb.checked){
+    // Remove color immediately so user sees the revert live
+    const f = TEXT_FIELDS.find(x=>x.key===key);
+    if(f) document.querySelectorAll(f.sel).forEach(el=>el.style.color='');
+  }
+}
+
+// Live preview color as user drags the RGB wheel
+function previewColor(key, color){
+  const f = TEXT_FIELDS.find(x=>x.key===key);
+  if(!f) return;
+  document.querySelectorAll(f.sel).forEach(el=>{ el.style.color = color; });
+  // Update the hex label next to the picker if it exists
+  const parent = document.getElementById('ovcolor-'+key)?.parentElement;
+  if(parent){
+    const span = parent.querySelector('span');
+    if(span) span.textContent = color;
+  }
+}
+
+function resetOneOverride(key){
+  delete TEXT_OVERRIDES[key];
+  delete TEXT_OVERRIDES[key+'_color'];
+  LS.s('bb_text_overrides', TEXT_OVERRIDES);
+  // Restore default text and color in DOM
+  const f = TEXT_FIELDS.find(x=>x.key===key);
+  if(f){
+    const els = document.querySelectorAll(f.sel);
+    els.forEach(el=>{
+      if(f.html) el.innerHTML = f.def;
+      else el.textContent = f.def;
+      el.style.color = ''; // remove color override
+    });
+  }
+  renderTextOverrideList();
+  toast('Reset to default ✓','ok');
+}
+
+function resetAllTextOverrides(){
+  if(!confirm('Reset ALL text overrides to default? This cannot be undone.')) return;
+  TEXT_OVERRIDES = {};
+  LS.s('bb_text_overrides', {});
+  // Restore all defaults — text and color
+  TEXT_FIELDS.forEach(f=>{
+    const els = document.querySelectorAll(f.sel);
+    els.forEach(el=>{
+      if(f.skipChildren){
+        const textNodes = [...el.childNodes].filter(n=>n.nodeType===3);
+        if(textNodes.length) textNodes[0].textContent = f.def;
+        else el.textContent = f.def;
+      } else if(f.html){
+        el.innerHTML = f.def;
+      } else {
+        el.textContent = f.def;
+      }
+      el.style.color = ''; // remove any color override
+    });
+  });
+  renderTextOverrideList();
+  document.getElementById('override-save-status').textContent = 'All overrides reset to default';
+  toast('All text reset to default ✓','ok');
+}
+
+// ═══════════════════════════════════════════════════════
+let _tt=null;
+function toast(msg,type=''){
+  clearTimeout(_tt);
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=type?`show ${type}`:'show';
+  _tt=setTimeout(()=>t.className='',3500);
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+function init(){
+  loadAll();
+  TEXT_OVERRIDES = LS.g('bb_text_overrides', {});
+  initTheme();
+  if(CUR_USER&&USERS[CUR_USER]) updateAuthUI();
+  // Init EmailJS if already configured
+  if(EJ_CONFIG.pub){ try{ emailjs.init(EJ_CONFIG.pub); }catch(e){} }
+  // Apply any saved text overrides
+  applyTextOverrides();
+  // Seed tournament games on first load
+  seedTournamentGames();
+  // Show announcement
+  if(ANN){ const b=document.getElementById('announce-bar'); b.textContent='📢 '+ANN; b.classList.add('on'); }
+  applyLockUI();
+  updateHeroStats();
+  loadHomeGames();
+  renderHomeLB();
+  recalcAll();
+  renderManualGamesInScores();
+  renderAnnouncementsPage();
+  // Auto-refresh every 45s
+  setInterval(async ()=>{
+    const ap=['page-scores','page-home','page-leaderboard','page-myteams'].find(p=>document.getElementById(p)?.classList.contains('active'));
+    if(ap==='page-scores')      { await fetchGames(); renderManualGamesInScores(); }
+    if(ap==='page-home')        { loadHomeGames(); renderHomeLB(); }
+    if(ap==='page-leaderboard') { recalcAll(); renderLB('all'); }
+    if(ap==='page-myteams')     { recalcAll(); renderMyTeams(); }
+    // Always run scoring pipeline if enabled, regardless of active page
+    if(CTRL.autoScoring && ALL_GAMES.length){
+      await runScoringPipeline(ALL_GAMES);
+    }
+  },45000);
+}
+
+init();
+</script>
+</body>
+</html>
