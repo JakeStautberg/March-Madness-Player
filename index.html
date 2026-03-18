@@ -68,19 +68,18 @@ try {
   // Teams — updates leaderboard live for everyone
   onSnapshot(collection(db, 'teams'), snap => {
     const fbTeams = snap.docs.map(d => d.data());
-    // Merge into localStorage so offline still works
-    const local = JSON.parse(localStorage.getItem('bb_teams')||'[]');
-    // FB is the source of truth — replace local
     localStorage.setItem('bb_teams', JSON.stringify(fbTeams));
-    if(window.TEAMS !== undefined){
-      window.TEAMS = fbTeams;
-      if(typeof renderLB==='function')     renderLB('all');
-      if(typeof renderHomeLB==='function') renderHomeLB();
-      if(typeof updateHeroStats==='function') updateHeroStats();
-      if(typeof renderMyTeams==='function' &&
-         document.getElementById('page-myteams')?.classList.contains('active'))
-        renderMyTeams();
-    }
+    window.TEAMS = fbTeams;
+    if(typeof recalcAll==='function') recalcAll();
+    if(typeof renderLB==='function') renderLB('all');
+    if(typeof renderHomeLB==='function') renderHomeLB();
+    if(typeof updateHeroStats==='function') updateHeroStats();
+    if(typeof renderMyTeams==='function' &&
+       document.getElementById('page-myteams')?.classList.contains('active'))
+      renderMyTeams();
+    if(typeof renderCommEntries==='function' &&
+       document.getElementById('page-commissioner')?.classList.contains('active'))
+      renderCommEntries();
   });
 
   // Users — keeps user count in sync
@@ -88,10 +87,11 @@ try {
     const fbUsers = {};
     snap.docs.forEach(d => { fbUsers[d.id] = d.data(); });
     localStorage.setItem('bb_users', JSON.stringify(fbUsers));
-    if(window.USERS !== undefined){
-      window.USERS = fbUsers;
-      if(typeof updateHeroStats==='function') updateHeroStats();
-    }
+    window.USERS = fbUsers;
+    if(typeof updateHeroStats==='function') updateHeroStats();
+    if(typeof renderCommUsers==='function' &&
+       document.getElementById('page-commissioner')?.classList.contains('active'))
+      renderCommUsers();
   });
 
   // Controls — commissioner changes apply to everyone instantly
@@ -1901,27 +1901,27 @@ function setScoreTab(tab){
 
 async function fetchGames(){
   try{
-    // Pull all college basketball games - no group filter so we get everything
-    // limit=100 ensures we get all tournament games (64 + play-ins = ~68)
-    const url='https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?limit=100&groups=50';
-    const r=await fetch(url);
-    const d=await r.json();
-    // Also try the general scoreboard if tournament-specific returns few games
-    let events=d.events||[];
-    // If fewer than 5 events, try without the groups filter
-    if(events.length<5){
-      const r2=await fetch('https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?limit=100');
-      const d2=await r2.json();
-      if((d2.events||[]).length>events.length) events=d2.events||[];
+    // groups=100 = NCAA Tournament, no groups fallback to all games
+    const urls = [
+      'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?groups=100&limit=64',
+      'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?limit=100',
+    ];
+    let events = [];
+    for(const url of urls){
+      try{
+        const r = await fetch(url);
+        const d = await r.json();
+        events = d.events||[];
+        if(events.length >= 2) break; // got data
+      }catch(e){ continue; }
     }
-    ALL_GAMES=events;
+    ALL_GAMES = events;
     renderGames();
     renderBracketFromESPN(events);
-    // If auto-scoring is on, pull box scores for active games
     if(CTRL.autoScoring) await runScoringPipeline(events);
   }catch(e){
     console.warn('ESPN fetch error:',e);
-    document.getElementById('games-container').innerHTML=`<div class="card" style="text-align:center;padding:28px;color:var(--muted);font-style:italic">Could not connect to ESPN. Showing manual games below.</div>`;
+    document.getElementById('games-container').innerHTML=`<div class="card" style="text-align:center;padding:28px;color:var(--muted);font-style:italic">Could not connect to ESPN. Manual games shown below.</div>`;
   }
 }
 
@@ -2001,18 +2001,30 @@ function renderBracketFromESPN(events){
     const comp=e.competitions?.[0]; if(!comp) return;
     const ts=comp.competitors||[]; if(ts.length<2) return;
     const [c1,c2]=ts;
-    const n1=c1.team?.displayName||'',n2=c2.team?.displayName||'';
-    const w=c1.winner?n1:c2.winner?n2:null;
+    const n1=c1.team?.displayName||'', n2=c2.team?.displayName||'';
+
+    // Map ESPN names to our roster keys
+    const rk1=espnTeamToRosterKey(n1), rk2=espnTeamToRosterKey(n2);
+
+    // Only process if BOTH teams are in our tournament bracket
+    if(!rk1||!rk2) return;
+
+    const w=c1.winner?rk1:c2.winner?rk2:null;
     if(!w) return;
-    const key=[n1,n2].sort().join('__');
+
+    // Store result using our roster key names (not ESPN display names)
+    const key=[rk1,rk2].sort().join('__');
     if(!BRAC[key]){
-      BRAC[key]={winner:w,s1:c1.score,s2:c2.score};
+      BRAC[key]={winner:w, s1:c1.score, s2:c2.score};
       LS.s('bb_brac',BRAC);
     }
-    // Check play-in
+
+    // Check play-in games using exact roster keys
     Object.entries(PLAY_IN).forEach(([id,pi])=>{
-      const matches=(n1.includes(pi.t1)||n1.includes(pi.t2))&&(n2.includes(pi.t1)||n2.includes(pi.t2));
-      if(matches&&!PI[id]){
+      const t1key=espnTeamToRosterKey(pi.t1)||pi.t1;
+      const t2key=espnTeamToRosterKey(pi.t2)||pi.t2;
+      const isPlayIn=(rk1===t1key&&rk2===t2key)||(rk1===t2key&&rk2===t1key);
+      if(isPlayIn&&!PI[id]){
         PI[id]=w;
         LS.s('bb_pi',PI);
       }
@@ -2023,13 +2035,13 @@ function renderBracketFromESPN(events){
 // Home games
 async function loadHomeGames(){
   try{
-    const r=await fetch('https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?limit=100&groups=50');
-    const d=await r.json();
-    let events=d.events||[];
-    if(events.length<5){
-      const r2=await fetch('https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?limit=100');
-      const d2=await r2.json();
-      if((d2.events||[]).length>events.length) events=d2.events||[];
+    const urls=[
+      'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?groups=100&limit=64',
+      'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?limit=100',
+    ];
+    let events=[];
+    for(const url of urls){
+      try{ const r=await fetch(url); const d=await r.json(); events=d.events||[]; if(events.length>=2) break; }catch(e){ continue; }
     }
     ALL_GAMES=events;
     const live=events.filter(e=>e.status?.type?.state==='in').slice(0,4);
@@ -2565,134 +2577,281 @@ function getAllPickedPlayers(){
 
 // Detect round from ESPN event
 // Returns the tournament round, or null if this is NOT an NCAA Tournament game
+// ── TOURNAMENT TEAM NAME → ROSTER KEY MAP ─────────────
+// Maps ESPN display names to our ROSTERS keys
+const ESPN_TEAM_MAP = {
+  'duke blue devils':'Duke',
+  'duke':'Duke',
+  'ohio state buckeyes':'Ohio State',
+  'ohio state':'Ohio State',
+  'tcu horned frogs':'TCU',
+  'tcu':'TCU',
+  "st. john's red storm":"St. John's",
+  "st. john's":"St. John's",
+  'northern iowa panthers':'Northern Iowa',
+  'northern iowa':'Northern Iowa',
+  'kansas jayhawks':'Kansas',
+  'kansas':'Kansas',
+  'cal baptist lancers':'Cal Baptist',
+  'cal baptist':'Cal Baptist',
+  'louisville cardinals':'Louisville',
+  'louisville':'Louisville',
+  'south florida bulls':'South Florida',
+  'south florida':'South Florida',
+  'michigan state spartans':'Michigan State',
+  'michigan state':'Michigan State',
+  'north dakota state bison':'North Dakota St.',
+  'north dakota st.':'North Dakota St.',
+  'north dakota state':'North Dakota St.',
+  'ucla bruins':'UCLA',
+  'ucla':'UCLA',
+  'ucf knights':'UCF',
+  'ucf':'UCF',
+  'uconn huskies':'UConn',
+  'connecticut':'UConn',
+  'uconn':'UConn',
+  'furman paladins':'Furman',
+  'furman':'Furman',
+  'arizona wildcats':'Arizona',
+  'arizona':'Arizona',
+  'long island university sharks':'Long Island U.',
+  'long island university':'Long Island U.',
+  'liu brooklyn':'Long Island U.',
+  'liu':'Long Island U.',
+  'villanova wildcats':'Villanova',
+  'villanova':'Villanova',
+  'utah state aggies':'Utah State',
+  'utah state':'Utah State',
+  'wisconsin badgers':'Wisconsin',
+  'wisconsin':'Wisconsin',
+  'high point panthers':'High Point',
+  'high point':'High Point',
+  'arkansas razorbacks':'Arkansas',
+  'arkansas':'Arkansas',
+  'hawaii rainbow warriors':'Hawaii',
+  'hawaii':'Hawaii',
+  'nc state wolfpack':'NC State',
+  'nc state':'NC State',
+  'north carolina state':'NC State',
+  'texas longhorns':'Texas',
+  'texas':'Texas',
+  'byu cougars':'BYU',
+  'byu':'BYU',
+  'brigham young':'BYU',
+  'gonzaga bulldogs':'Gonzaga',
+  'gonzaga':'Gonzaga',
+  'kennesaw state owls':'Kennesaw State',
+  'kennesaw state':'Kennesaw State',
+  'miami hurricanes':'Miami (FL)',
+  'miami (fl)':'Miami (FL)',
+  'miami fl':'Miami (FL)',
+  'missouri tigers':'Missouri',
+  'missouri':'Missouri',
+  'purdue boilermakers':'Purdue',
+  'purdue':'Purdue',
+  "queens university of charlotte":'Queens (NC)',
+  'queens (nc)':'Queens (NC)',
+  'queens':'Queens (NC)',
+  'lehigh mountain hawks':'Lehigh',
+  'lehigh':'Lehigh',
+  'prairie view a&m panthers':'Prairie View A&M',
+  'prairie view a&m':'Prairie View A&M',
+  'prairie view':'Prairie View A&M',
+  'florida gators':'Florida',
+  'florida':'Florida',
+  'clemson tigers':'Clemson',
+  'clemson':'Clemson',
+  'iowa hawkeyes':'Iowa',
+  'iowa':'Iowa',
+  'vanderbilt commodores':'Vanderbilt',
+  'vanderbilt':'Vanderbilt',
+  'mcneese cowboys':'McNeese',
+  'mcneese state':'McNeese',
+  'mcneese':'McNeese',
+  'nebraska cornhuskers':'Nebraska',
+  'nebraska':'Nebraska',
+  'troy trojans':'Troy',
+  'troy':'Troy',
+  'north carolina tar heels':'North Carolina',
+  'north carolina':'North Carolina',
+  'vcu rams':'VCU',
+  'vcu':'VCU',
+  'virginia commonwealth':'VCU',
+  'illinois fighting illini':'Illinois',
+  'illinois':'Illinois',
+  'penn quakers':'Penn',
+  'penn':'Penn',
+  "saint mary's gaels":"St. Mary's",
+  "st. mary's":"St. Mary's",
+  'texas a&m aggies':'Texas A&M',
+  'texas a&m':'Texas A&M',
+  'houston cougars':'Houston',
+  'houston':'Houston',
+  'idaho vandals':'Idaho',
+  'idaho':'Idaho',
+  'howard bison':'Howard',
+  'howard':'Howard',
+  'umbc retrievers':'UMBC',
+  'umbc':'UMBC',
+  'michigan wolverines':'Michigan',
+  'michigan':'Michigan',
+  'georgia bulldogs':'Georgia',
+  'georgia':'Georgia',
+  'saint louis billikens':'St. Louis',
+  'saint louis':'St. Louis',
+  'st. louis':'St. Louis',
+  'texas tech red raiders':'Texas Tech',
+  'texas tech':'Texas Tech',
+  'akron zips':'Akron',
+  'akron':'Akron',
+  'alabama crimson tide':'Alabama',
+  'alabama':'Alabama',
+  'hofstra pride':'Hofstra',
+  'hofstra':'Hofstra',
+  'smu mustangs':'SMU',
+  'smu':'SMU',
+  'southern methodist':'SMU',
+  'miami ohio redhawks':'Miami (OH)',
+  'miami (oh)':'Miami (OH)',
+  'miami oh':'Miami (OH)',
+  'miami (ohio)':'Miami (OH)',
+  'tennessee volunteers':'Tennessee',
+  'tennessee':'Tennessee',
+  'virginia cavaliers':'Virginia',
+  'virginia':'Virginia',
+  'wright state raiders':'Wright State',
+  'wright state':'Wright State',
+  'kentucky wildcats':'Kentucky',
+  'kentucky':'Kentucky',
+  'santa clara broncos':'Santa Clara',
+  'santa clara':'Santa Clara',
+  'iowa state cyclones':'Iowa State',
+  'iowa state':'Iowa State',
+  'tennessee state tigers':'Tennessee State',
+  'tennessee state':'Tennessee State',
+  'siena saints':'Siena',
+  'siena':'Siena',
+};
+
+function espnTeamToRosterKey(espnTeamName){
+  return ESPN_TEAM_MAP[espnTeamName.toLowerCase().trim()] || null;
+}
+
 function detectRound(ev){
   const notes = (ev.competitions?.[0]?.notes||[]).map(n=>n.headline||'').join(' ').toLowerCase();
   const name  = (ev.name||ev.shortName||'').toLowerCase();
-  const season= ev.season?.slug||ev.competitions?.[0]?.season?.slug||'';
-  const all   = notes + ' ' + name + ' ' + season;
-
-  // Must explicitly match NCAA Tournament language — no default fallback
+  const all   = notes + ' ' + name;
   if(all.includes('first four') || all.includes('play-in'))         return 'Play-In';
   if(all.includes('first round') || all.includes('round of 64'))    return 'R64';
   if(all.includes('second round')|| all.includes('round of 32'))    return 'R32';
   if(all.includes('sweet 16')    || all.includes('sweet sixteen'))  return 'S16';
   if(all.includes('elite eight') || all.includes('elite 8'))        return 'E8';
   if(all.includes('final four'))                                     return 'FF';
-  if(all.includes('national championship')||all.includes('championship game')) return 'CHAMP';
-  if(all.includes('ncaa') && (all.includes('tournament')||all.includes('march madness'))) return 'R64';
-
-  // Check if both teams are in our bracket — strongest signal it's a tournament game
+  if(all.includes('national championship'))                          return 'CHAMP';
+  // Check if both teams are tournament teams
   const comps = ev.competitions?.[0]?.competitors||[];
-  const espnTeams = comps.map(c=>(c.team?.displayName||c.team?.name||'').toLowerCase());
-  const ourTeams = Object.keys(ROSTERS).map(t=>t.toLowerCase());
-  const bothMatch = espnTeams.filter(et=>ourTeams.some(ot=>et.includes(ot)||ot.includes(et))).length >= 2;
-  if(bothMatch) return 'R64'; // both teams are in our bracket — it's a tournament game
-
-  return null; // NOT a tournament game — skip it
+  const bothTournament = comps.filter(c=>
+    espnTeamToRosterKey(c.team?.displayName||c.team?.name||'')
+  ).length >= 2;
+  if(bothTournament) return 'R64';
+  return null;
 }
+
+let _processedGames = new Set(LS.g('bb_processed_games',[]));
 
 async function runScoringPipeline(events){
   const pickedPlayers = getAllPickedPlayers();
   if(!pickedPlayers.size) return;
 
-  const activeEvents = events.filter(e => {
+  // Only process tournament games
+  const activeEvents = events.filter(e=>{
     const state = e.status?.type?.state;
     if(state!=='in' && state!=='post') return false;
-    // Only process confirmed tournament games
-    const round = detectRound(e);
-    return round !== null;
+    return detectRound(e) !== null;
   });
+
   let anyUpdated = false;
+
   for(const ev of activeEvents){
     const gameId = ev.id;
     const state  = ev.status?.type?.state;
-    // For finished games, only process once
     if(state==='post' && _processedGames.has(gameId)) continue;
+
     const data = await fetchBoxScore(gameId);
     if(!data) continue;
     const boxPlayers = parseBoxScore(data);
     if(!boxPlayers.length) continue;
+
     const round = detectRound(ev);
     const date  = new Date(ev.competitions?.[0]?.date||ev.date||Date.now())
                     .toLocaleDateString('en-US',{month:'short',day:'numeric'});
     const comp  = ev.competitions?.[0];
-    const teams = comp?.competitors||[];
-    boxPlayers.forEach(bp => {
-      // Only match against players actually picked by someone
-      // AND verify the player is on a team playing in THIS specific game
-      const gameTeamNames = teams.map(t=>(t.team?.displayName||t.team?.name||'').toLowerCase());
+    const gameTeams = (comp?.competitors||[]).map(c=>({
+      espnName: (c.team?.displayName||c.team?.name||''),
+      rosterKey: espnTeamToRosterKey(c.team?.displayName||c.team?.name||''),
+    }));
 
-      // Find which roster team this ESPN player belongs to
-      // by checking if their team is playing in this game
+    // Build a map: rosterTeamKey → list of picked players from that team
+    const teamPickMap = {};
+    gameTeams.forEach(({rosterKey})=>{
+      if(!rosterKey || !ROSTERS[rosterKey]) return;
+      const picked = ROSTERS[rosterKey].filter(p=>pickedPlayers.has(p));
+      if(picked.length) teamPickMap[rosterKey] = picked;
+    });
+
+    if(!Object.keys(teamPickMap).length) continue; // nobody picked from teams in this game
+
+    boxPlayers.forEach(bp=>{
       let matchedPlayer = null;
-      let matchedRosterTeam = null;
+      let matchedTeam   = null;
 
-      for(const [rosterTeam, rosterPlayers] of Object.entries(ROSTERS)){
-        // Check if this roster team is one of the teams in this game
-        const teamInGame = gameTeamNames.some(gtn =>
-          gtn.includes(rosterTeam.toLowerCase().split(' ')[0]) ||
-          rosterTeam.toLowerCase().includes(gtn.split(' ')[0])
-        );
-        if(!teamInGame) continue;
-
-        // Only try to match players from this specific team
-        const pickedFromTeam = rosterPlayers.filter(p => pickedPlayers.has(p));
-        if(!pickedFromTeam.length) continue;
-
-        const m = fuzzyMatchPlayer(bp.name, pickedFromTeam);
-        if(m){ matchedPlayer = m; matchedRosterTeam = rosterTeam; break; }
+      // Try to match against picked players from teams in THIS game only
+      for(const [rosterKey, pickedList] of Object.entries(teamPickMap)){
+        const m = fuzzyMatchPlayer(bp.name, pickedList);
+        if(m){ matchedPlayer=m; matchedTeam=rosterKey; break; }
       }
-
       if(!matchedPlayer) return;
 
-      const oppTeam = teams.find(t=>
-        !gameTeamNames.some(gtn=>gtn===( t.team?.displayName||'').toLowerCase() &&
-          (matchedRosterTeam||'').toLowerCase().includes(gtn.split(' ')[0]))
-      );
-      const opp = oppTeam?.team?.displayName || 'Opponent';
+      const opp = gameTeams.find(t=>t.rosterKey!==matchedTeam)?.espnName || 'Opponent';
 
-      // Update cumulative stats
       if(!STATS[matchedPlayer]) STATS[matchedPlayer]={pts:0,reb:0,ast:0,stl:0,blk:0,to:0,foul:0,gamesPlayed:0};
 
       if(state==='in'){
-        const liveKey = `live_${gameId}_${matchedPlayer.replace(/\s/g,'_')}`;
-        const prev = LS.g(liveKey, {pts:0,reb:0,ast:0,stl:0,blk:0,to:0,foul:0});
+        const liveKey=`live_${gameId}_${matchedPlayer.replace(/\s/g,'_')}`;
+        const prev=LS.g(liveKey,{pts:0,reb:0,ast:0,stl:0,blk:0,to:0,foul:0});
         ['pts','reb','ast','stl','blk','to','foul'].forEach(k=>{
-          STATS[matchedPlayer][k] = Math.max(0, (STATS[matchedPlayer][k]||0) - (prev[k]||0) + (bp[k]||0));
+          STATS[matchedPlayer][k]=Math.max(0,(STATS[matchedPlayer][k]||0)-(prev[k]||0)+(bp[k]||0));
         });
-        LS.s(liveKey, {pts:bp.pts,reb:bp.reb,ast:bp.ast,stl:bp.stl,blk:bp.blk,to:bp.to,foul:bp.foul});
+        LS.s(liveKey,{pts:bp.pts,reb:bp.reb,ast:bp.ast,stl:bp.stl,blk:bp.blk,to:bp.to,foul:bp.foul});
       } else {
-        const doneKey = `done_${gameId}_${matchedPlayer.replace(/\s/g,'_')}`;
+        const doneKey=`done_${gameId}_${matchedPlayer.replace(/\s/g,'_')}`;
         if(!LS.g(doneKey,false)){
           ['pts','reb','ast','stl','blk','to','foul'].forEach(k=>{
-            STATS[matchedPlayer][k] = (STATS[matchedPlayer][k]||0) + (bp[k]||0);
+            STATS[matchedPlayer][k]=(STATS[matchedPlayer][k]||0)+(bp[k]||0);
           });
-          STATS[matchedPlayer].gamesPlayed = (STATS[matchedPlayer].gamesPlayed||0) + 1;
+          STATS[matchedPlayer].gamesPlayed=(STATS[matchedPlayer].gamesPlayed||0)+1;
           LS.s(doneKey,true);
           if(!LOGS[matchedPlayer]) LOGS[matchedPlayer]=[];
-          const alreadyLogged = LOGS[matchedPlayer].some(g=>g.gameId===gameId);
-          if(!alreadyLogged){
-            LOGS[matchedPlayer].push({
-              gameId, round, date, opponent:opp,
+          if(!LOGS[matchedPlayer].some(g=>g.gameId===gameId)){
+            LOGS[matchedPlayer].push({gameId,round,date,opponent:opp,
               pts:bp.pts,reb:bp.reb,ast:bp.ast,stl:bp.stl,blk:bp.blk,to:bp.to,foul:bp.foul,
-              fp: calcFP(bp),
-            });
+              fp:calcFP(bp)});
           }
         }
       }
-      anyUpdated = true;
+      anyUpdated=true;
     });
-    // Mark finished game as fully processed
+
     if(state==='post'){
       _processedGames.add(gameId);
       LS.s('bb_processed_games',[..._processedGames]);
     }
   }
+
   if(anyUpdated){
     recalcAll();
     saveAll();
     document.getElementById('refresh-status').textContent='Auto-scored at '+new Date().toLocaleTimeString();
-    // Check if a round just completed for auto-email
     checkAutoEmail(events);
   }
 }
@@ -3093,8 +3252,8 @@ function toggleRules(){
 // Only seeds if MANUAL_GAMES is empty (first load)
 // ═══════════════════════════════════════════════════════
 function seedTournamentGames(){
-  // Use a permanent flag so re-seeding never happens even if games are deleted
-  if(LS.g('bb_seeded','0')==='1') return;
+  // Re-seed if games array is empty (handles cleared localStorage)
+  if(LS.g('bb_seeded','0')==='1' && MANUAL_GAMES.length > 0) return;
   LS.s('bb_seeded','1');
   const thursday = [
     {t1:'No. 8 Ohio State',  t2:'No. 9 TCU',           s1:'',s2:'',status:'pre',time:'12:15 PM ET · Thu 3/19 · CBS',    round:'Round of 64 — EAST'},
@@ -3385,9 +3544,18 @@ function init(){
   TEXT_OVERRIDES = LS.g('bb_text_overrides', {});
   initTheme();
   if(CUR_USER&&USERS[CUR_USER]) updateAuthUI();
-  // Init EmailJS if already configured
   if(EJ_CONFIG.pub){ try{ emailjs.init(EJ_CONFIG.pub); }catch(e){} }
-  // Apply any saved text overrides
+
+  // Clean up any bad bracket results (non-tournament teams stored by old code)
+  let bracDirty=false;
+  Object.keys(BRAC).forEach(key=>{
+    const parts=key.split('__');
+    if(parts.length<2||!ROSTERS[parts[0]]||!ROSTERS[parts[1]]){
+      delete BRAC[key]; bracDirty=true;
+    }
+  });
+  if(bracDirty){ LS.s('bb_brac',BRAC); console.log('Cleaned stale bracket results'); }
+
   applyTextOverrides();
   // Seed tournament games on first load
   seedTournamentGames();
