@@ -127,7 +127,58 @@ try {
   window._fbReady = false;
 }
 
-// ── FIREBASE WRITE HELPERS (called from main JS) ──────
+// ── COMMISSIONER NAME MAP EDITOR ─────────────────────
+// Stored in localStorage, merged with hardcoded ESPN_NAME_MAP at runtime
+let CUSTOM_NAME_MAP = LS.g('bb_name_map', {});
+
+function getMergedNameMap(){
+  return {...ESPN_NAME_MAP, ...CUSTOM_NAME_MAP};
+}
+
+function addNameMap(){
+  const espn   = document.getElementById('emap-espn').value.trim().toLowerCase();
+  const roster = document.getElementById('emap-roster').value.trim();
+  if(!espn||!roster){ toast('Both fields required','err'); return; }
+  // Verify roster name exists
+  const allRoster = Object.values(ROSTERS).flat();
+  if(!allRoster.includes(roster)){
+    toast(`"${roster}" not found in any roster — check spelling exactly`,'err'); return;
+  }
+  CUSTOM_NAME_MAP[espn] = roster;
+  LS.s('bb_name_map', CUSTOM_NAME_MAP);
+  document.getElementById('emap-espn').value='';
+  document.getElementById('emap-roster').value='';
+  renderNameMapList();
+  toast(`Mapped "${espn}" → "${roster}" ✓`,'ok');
+}
+
+function removeNameMap(key){
+  delete CUSTOM_NAME_MAP[key];
+  LS.s('bb_name_map', CUSTOM_NAME_MAP);
+  renderNameMapList();
+  toast('Mapping removed','ok');
+}
+
+function renderNameMapList(){
+  const c = document.getElementById('name-map-list');
+  if(!c) return;
+  const merged = getMergedNameMap();
+  const custom = CUSTOM_NAME_MAP;
+  const entries = Object.entries(merged);
+  if(!entries.length){ c.innerHTML='<span style="color:var(--muted);font-style:italic">No custom mappings</span>'; return; }
+  c.innerHTML = entries.map(([espn,roster])=>{
+    const isCustom = !!custom[espn];
+    return `<div style="display:flex;align-items:center;gap:10px;padding:2px 0">
+      <span style="color:var(--muted)">${isCustom?'★':'·'}</span>
+      <span style="color:var(--text)">${espn}</span>
+      <span style="color:var(--dim)">→</span>
+      <span style="color:var(--accent)">${roster}</span>
+      ${isCustom?`<button class="btn btn-danger btn-sm" style="padding:1px 6px;font-size:9px" onclick="removeNameMap('${espn.replace(/'/g,"\\'")}')">✕</button>`:'<span style="font-size:9px;color:var(--dim)">(built-in)</span>'}
+    </div>`;
+  }).join('');
+}
+
+
 window.fbSaveUser = async (email, data) => {
   if(!window._db) return;
   const {doc,setDoc} = window._fb;
@@ -956,6 +1007,27 @@ nav{display:flex;padding:0 20px;height:38px;overflow-x:auto;gap:0;}
         </div>
         <div id="stat-result" style="margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)"></div>
       </div>
+      <!-- ESPN NAME MAP -->
+      <div class="comm-section">
+        <div class="comm-section-title">🔗 ESPN Name Fix</div>
+        <p style="font-size:12px;color:var(--muted);font-style:italic;margin-bottom:12px;line-height:1.6">
+          If ESPN uses a different name than your roster (e.g. "Cam Boozer" vs "Cameron Boozer"), add it here. Left = ESPN name exactly as it appears. Right = exact roster name.
+        </p>
+        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px">
+          <div>
+            <label class="fm-label">ESPN Name (as it appears)</label>
+            <input type="text" class="fm-input" id="emap-espn" placeholder="e.g. Cam Boozer" style="width:200px"/>
+          </div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:var(--dim);padding-bottom:6px">→</div>
+          <div>
+            <label class="fm-label">Roster Name (exact)</label>
+            <input type="text" class="fm-input" id="emap-roster" placeholder="e.g. Cameron Boozer" style="width:200px"/>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="addNameMap()">Add</button>
+        </div>
+        <div id="name-map-list" style="font-family:'JetBrains Mono',monospace;font-size:11px;line-height:2"></div>
+      </div>
+
       <!-- SCORING CONTROLS -->
       <div class="comm-section">
         <div class="comm-section-title">🔄 Scoring Controls</div>
@@ -2208,6 +2280,7 @@ function loadCommDash(){
   renderManualGamesList();
   loadEmailConfig();
   renderTextOverrideList();
+  renderNameMapList();
 }
 
 function renderCommEntries(){
@@ -2362,18 +2435,74 @@ function commResetStats(){
 // ═══════════════════════════════════════════════════════
 
 // Fuzzy name matcher — handles ESPN abbreviations vs full names
+// ── EXPLICIT ESPN NAME MAP ─────────────────────────────
+// If ESPN uses a different name than your roster, add it here.
+// Format: 'ESPN name as it appears': 'Exact roster name'
+const ESPN_NAME_MAP = {
+  // Boozer disambiguation — Duke
+  'cameron boozer':  'Cameron Boozer',
+  'cayden boozer':   'Cayden Boozer',
+  'cam boozer':      'Cameron Boozer',
+  // Common ESPN abbreviations / alternate spellings
+  'aj dybantsa':     'AJ Dybantsa',
+  'a.j. dybantsa':   'AJ Dybantsa',
+  'tj toppin':       'JT Toppin',
+  't.j. toppin':     'JT Toppin',
+  'jt toppin':       'JT Toppin',
+  'ismaila diagne':  'Ismaila Diagne',
+  'boogie fland':    'Boogie Fland',
+  'solo ball':       'Solo Ball',
+  'puff johnson':    'Puff Johnson',
+  'ak okereke':      'AK Okereke',
+  'dj wagner':       'D.J. Wagner',
+  'd.j. wagner':     'D.J. Wagner',
+  'bj powell':       'BJ Powell',
+  'b.j. powell':     'BJ Powell',
+  // Add more here as you spot issues during the tournament
+};
+
 function fuzzyMatchPlayer(espnName, rosterNames){
   const normalize = s => s.toLowerCase().replace(/[^a-z\s]/g,'').trim();
   const en = normalize(espnName);
-  // Exact match first
-  let match = rosterNames.find(r => normalize(r) === en);
-  if(match) return match;
-  // Last name match
+  const enRaw = espnName.toLowerCase().trim();
+
+  // 1. Check explicit name map first — most reliable
+  const mergedMap = typeof getMergedNameMap === 'function' ? getMergedNameMap() : ESPN_NAME_MAP;
+  if(mergedMap[enRaw])  {
+    const mapped = mergedMap[enRaw];
+    if(rosterNames.includes(mapped)) return mapped;
+  }
+  if(mergedMap[en]) {
+    const mapped = mergedMap[en];
+    if(rosterNames.includes(mapped)) return mapped;
+  }
+
+  // 2. Exact full name match (normalized)
+  const exactMatch = rosterNames.find(r => normalize(r) === en);
+  if(exactMatch) return exactMatch;
+
+  // 3. Last name match — ONLY if exactly one candidate on this team
+  // (already filtered to team roster so collision within team is rare)
   const enLast = en.split(' ').slice(-1)[0];
-  const candidates = rosterNames.filter(r => normalize(r).split(' ').slice(-1)[0] === enLast);
-  if(candidates.length === 1) return candidates[0];
-  // First initial + last name (ESPN sometimes shows "C. Boozer")
-  const initMatch = en.match(/^([a-z])\.\s*(.+)$/);
+  const lastCandidates = rosterNames.filter(r => normalize(r).split(' ').slice(-1)[0] === enLast);
+  if(lastCandidates.length === 1) return lastCandidates[0];
+  // If multiple same last name on same team — don't guess, require more info
+  if(lastCandidates.length > 1){
+    // Try first initial + last to disambiguate
+    const enParts = en.split(' ');
+    if(enParts.length >= 2){
+      const enFirst = enParts[0];
+      const disambig = lastCandidates.find(r => {
+        const rn = normalize(r).split(' ');
+        return rn[0] === enFirst || rn[0][0] === enFirst[0];
+      });
+      if(disambig) return disambig;
+    }
+    return null; // Can't safely disambiguate
+  }
+
+  // 4. ESPN "C. Boozer" style — initial + last
+  const initMatch = en.match(/^([a-z])\.?\s+(.+)$/);
   if(initMatch){
     const [,init,last] = initMatch;
     const found = rosterNames.find(r => {
@@ -2382,7 +2511,8 @@ function fuzzyMatchPlayer(espnName, rosterNames){
     });
     if(found) return found;
   }
-  return null;
+
+  return null; // No match — skip this player
 }
 
 async function fetchBoxScore(gameId){
@@ -2434,28 +2564,43 @@ function getAllPickedPlayers(){
 }
 
 // Detect round from ESPN event
+// Returns the tournament round, or null if this is NOT an NCAA Tournament game
 function detectRound(ev){
   const notes = (ev.competitions?.[0]?.notes||[]).map(n=>n.headline||'').join(' ').toLowerCase();
   const name  = (ev.name||ev.shortName||'').toLowerCase();
-  const all   = notes + ' ' + name;
-  if(all.includes('first four') || all.includes('play-in')) return 'Play-In';
-  if(all.includes('first round') || all.includes('round of 64')) return 'R64';
-  if(all.includes('second round')|| all.includes('round of 32')) return 'R32';
-  if(all.includes('sweet 16')    || all.includes('sweet sixteen'))return 'S16';
-  if(all.includes('elite eight') || all.includes('elite 8'))      return 'E8';
-  if(all.includes('final four'))                                   return 'FF';
-  if(all.includes('national championship')||all.includes('championship')) return 'CHAMP';
-  return 'R64'; // default
-}
+  const season= ev.season?.slug||ev.competitions?.[0]?.season?.slug||'';
+  const all   = notes + ' ' + name + ' ' + season;
 
-let _processedGames = new Set(LS.g('bb_processed_games',[]));
+  // Must explicitly match NCAA Tournament language — no default fallback
+  if(all.includes('first four') || all.includes('play-in'))         return 'Play-In';
+  if(all.includes('first round') || all.includes('round of 64'))    return 'R64';
+  if(all.includes('second round')|| all.includes('round of 32'))    return 'R32';
+  if(all.includes('sweet 16')    || all.includes('sweet sixteen'))  return 'S16';
+  if(all.includes('elite eight') || all.includes('elite 8'))        return 'E8';
+  if(all.includes('final four'))                                     return 'FF';
+  if(all.includes('national championship')||all.includes('championship game')) return 'CHAMP';
+  if(all.includes('ncaa') && (all.includes('tournament')||all.includes('march madness'))) return 'R64';
+
+  // Check if both teams are in our bracket — strongest signal it's a tournament game
+  const comps = ev.competitions?.[0]?.competitors||[];
+  const espnTeams = comps.map(c=>(c.team?.displayName||c.team?.name||'').toLowerCase());
+  const ourTeams = Object.keys(ROSTERS).map(t=>t.toLowerCase());
+  const bothMatch = espnTeams.filter(et=>ourTeams.some(ot=>et.includes(ot)||ot.includes(et))).length >= 2;
+  if(bothMatch) return 'R64'; // both teams are in our bracket — it's a tournament game
+
+  return null; // NOT a tournament game — skip it
+}
 
 async function runScoringPipeline(events){
   const pickedPlayers = getAllPickedPlayers();
-  if(!pickedPlayers.size) return; // nobody has picks yet
+  if(!pickedPlayers.size) return;
+
   const activeEvents = events.filter(e => {
     const state = e.status?.type?.state;
-    return (state==='in' || state==='post');
+    if(state!=='in' && state!=='post') return false;
+    // Only process confirmed tournament games
+    const round = detectRound(e);
+    return round !== null;
   });
   let anyUpdated = false;
   for(const ev of activeEvents){
@@ -2473,47 +2618,61 @@ async function runScoringPipeline(events){
     const comp  = ev.competitions?.[0];
     const teams = comp?.competitors||[];
     boxPlayers.forEach(bp => {
-      // Find matching roster player
-      const allRosterNames = [...pickedPlayers];
-      const matched = fuzzyMatchPlayer(bp.name, allRosterNames);
-      if(!matched) return;
-      // Get the opponent team name
-      const playerTeam = teams.find(t =>
-        Object.values(ROSTERS).some(roster =>
-          roster.some(rp => fuzzyMatchPlayer(rp,[matched]) === matched) &&
-          (t.team?.displayName||'').toLowerCase().includes(
-            Object.keys(ROSTERS).find(k=>ROSTERS[k].includes(matched))?.toLowerCase().split(' ')[0]||'_'
-          )
-        )
+      // Only match against players actually picked by someone
+      // AND verify the player is on a team playing in THIS specific game
+      const gameTeamNames = teams.map(t=>(t.team?.displayName||t.team?.name||'').toLowerCase());
+
+      // Find which roster team this ESPN player belongs to
+      // by checking if their team is playing in this game
+      let matchedPlayer = null;
+      let matchedRosterTeam = null;
+
+      for(const [rosterTeam, rosterPlayers] of Object.entries(ROSTERS)){
+        // Check if this roster team is one of the teams in this game
+        const teamInGame = gameTeamNames.some(gtn =>
+          gtn.includes(rosterTeam.toLowerCase().split(' ')[0]) ||
+          rosterTeam.toLowerCase().includes(gtn.split(' ')[0])
+        );
+        if(!teamInGame) continue;
+
+        // Only try to match players from this specific team
+        const pickedFromTeam = rosterPlayers.filter(p => pickedPlayers.has(p));
+        if(!pickedFromTeam.length) continue;
+
+        const m = fuzzyMatchPlayer(bp.name, pickedFromTeam);
+        if(m){ matchedPlayer = m; matchedRosterTeam = rosterTeam; break; }
+      }
+
+      if(!matchedPlayer) return;
+
+      const oppTeam = teams.find(t=>
+        !gameTeamNames.some(gtn=>gtn===( t.team?.displayName||'').toLowerCase() &&
+          (matchedRosterTeam||'').toLowerCase().includes(gtn.split(' ')[0]))
       );
-      const oppTeam = teams.find(t=>t!==playerTeam);
-      const opp = oppTeam?.team?.abbreviation || oppTeam?.team?.displayName || 'Opponent';
+      const opp = oppTeam?.team?.displayName || 'Opponent';
+
       // Update cumulative stats
-      if(!STATS[matched]) STATS[matched]={pts:0,reb:0,ast:0,stl:0,blk:0,to:0,foul:0,gamesPlayed:0};
-      // For live games update continuously; for finished games add once
+      if(!STATS[matchedPlayer]) STATS[matchedPlayer]={pts:0,reb:0,ast:0,stl:0,blk:0,to:0,foul:0,gamesPlayed:0};
+
       if(state==='in'){
-        // Store current game stats separately to avoid double-adding
-        const liveKey = `live_${gameId}_${matched.replace(/\s/g,'_')}`;
+        const liveKey = `live_${gameId}_${matchedPlayer.replace(/\s/g,'_')}`;
         const prev = LS.g(liveKey, {pts:0,reb:0,ast:0,stl:0,blk:0,to:0,foul:0});
-        // Subtract prev, add new
         ['pts','reb','ast','stl','blk','to','foul'].forEach(k=>{
-          STATS[matched][k] = Math.max(0, (STATS[matched][k]||0) - (prev[k]||0) + (bp[k]||0));
+          STATS[matchedPlayer][k] = Math.max(0, (STATS[matchedPlayer][k]||0) - (prev[k]||0) + (bp[k]||0));
         });
         LS.s(liveKey, {pts:bp.pts,reb:bp.reb,ast:bp.ast,stl:bp.stl,blk:bp.blk,to:bp.to,foul:bp.foul});
       } else {
-        // Final — add once, mark processed
-        const doneKey = `done_${gameId}_${matched.replace(/\s/g,'_')}`;
+        const doneKey = `done_${gameId}_${matchedPlayer.replace(/\s/g,'_')}`;
         if(!LS.g(doneKey,false)){
           ['pts','reb','ast','stl','blk','to','foul'].forEach(k=>{
-            STATS[matched][k] = (STATS[matched][k]||0) + (bp[k]||0);
+            STATS[matchedPlayer][k] = (STATS[matchedPlayer][k]||0) + (bp[k]||0);
           });
-          STATS[matched].gamesPlayed = (STATS[matched].gamesPlayed||0) + 1;
+          STATS[matchedPlayer].gamesPlayed = (STATS[matchedPlayer].gamesPlayed||0) + 1;
           LS.s(doneKey,true);
-          // Add to game log
-          if(!LOGS[matched]) LOGS[matched]=[];
-          const alreadyLogged = LOGS[matched].some(g=>g.gameId===gameId);
+          if(!LOGS[matchedPlayer]) LOGS[matchedPlayer]=[];
+          const alreadyLogged = LOGS[matchedPlayer].some(g=>g.gameId===gameId);
           if(!alreadyLogged){
-            LOGS[matched].push({
+            LOGS[matchedPlayer].push({
               gameId, round, date, opponent:opp,
               pts:bp.pts,reb:bp.reb,ast:bp.ast,stl:bp.stl,blk:bp.blk,to:bp.to,foul:bp.foul,
               fp: calcFP(bp),
