@@ -1589,7 +1589,10 @@ function goPage(id) {
     if(!COMM_AUTHED) {
       document.getElementById('comm-login-screen').style.display='block';
       document.getElementById('comm-dashboard').style.display='none';
-    } else { loadCommDash(); }
+    } else {
+      // Small delay ensures Firebase listener has pushed latest data before rendering
+      setTimeout(loadCommDash, 300);
+    }
   }
 }
 
@@ -2333,7 +2336,7 @@ function commLogin(){
     COMM_AUTHED=true;
     document.getElementById('comm-login-screen').style.display='none';
     document.getElementById('comm-dashboard').style.display='block';
-    loadCommDash();
+    setTimeout(loadCommDash, 500); // wait for Firebase to push latest data
   } else { toast('Wrong password','err'); document.getElementById('comm-pw-input').value=''; }
 }
 function commLogout(){
@@ -2360,7 +2363,8 @@ function applyCtrl(key,val){
 }
 
 function loadCommDash(){
-  loadAll(); // refresh from LS
+  // Always use the live TEAMS/USERS which Firebase keeps updated
+  // Don't call loadAll() here as it would overwrite Firebase data with stale localStorage
   document.getElementById('ctrl-lock').checked=CTRL.picksLocked||false;
   document.getElementById('ctrl-show-lb').checked=CTRL.showLeaderboard!==false;
   document.getElementById('ctrl-auto').checked=CTRL.autoScoring||false;
