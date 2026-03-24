@@ -65,54 +65,43 @@ try {
   window._fb = { doc, setDoc, getDoc, collection, getDocs, onSnapshot, deleteDoc, query, orderBy };
 
   // ── REAL-TIME LISTENERS ──────────────────────────────
-  // Teams — updates leaderboard live for everyone
+  // Write to localStorage immediately so init() picks up the data.
+  // Also call window._fbCallbacks if init() has already run.
+
   onSnapshot(collection(db, 'teams'), snap => {
     const fbTeams = snap.docs.map(d => d.data());
     localStorage.setItem('bb_teams', JSON.stringify(fbTeams));
-    window.TEAMS = fbTeams;
-    if(typeof recalcAll==='function') recalcAll();
-    if(typeof renderLB==='function') renderLB('all');
-    if(typeof renderHomeLB==='function') renderHomeLB();
-    if(typeof updateHeroStats==='function') updateHeroStats();
-    if(typeof renderMyTeams==='function' &&
-       document.getElementById('page-myteams')?.classList.contains('active'))
-      renderMyTeams();
-    if(typeof renderCommEntries==='function' &&
-       document.getElementById('page-commissioner')?.classList.contains('active'))
-      renderCommEntries();
+    if(window._fbCallbacks?.onTeams) window._fbCallbacks.onTeams(fbTeams);
   });
 
-  // Users — keeps user count in sync
   onSnapshot(collection(db, 'users'), snap => {
     const fbUsers = {};
     snap.docs.forEach(d => { fbUsers[d.id] = d.data(); });
     localStorage.setItem('bb_users', JSON.stringify(fbUsers));
-    window.USERS = fbUsers;
-    if(typeof updateHeroStats==='function') updateHeroStats();
-    if(typeof renderCommUsers==='function' &&
-       document.getElementById('page-commissioner')?.classList.contains('active'))
-      renderCommUsers();
+    if(window._fbCallbacks?.onUsers) window._fbCallbacks.onUsers(fbUsers);
   });
 
-  // Controls — commissioner changes apply to everyone instantly
-  onSnapshot(doc(db, 'settings', 'controls'), snap => {
-    if(snap.exists()){
-      const ctrl = snap.data();
-      localStorage.setItem('bb_ctrl', JSON.stringify(ctrl));
-      if(window.CTRL !== undefined){
-        window.CTRL = ctrl;
-        if(typeof applyLockUI==='function') applyLockUI();
-      }
+  onSnapshot(collection(db, 'playerStats'), snap => {
+    const fbStats = {};
+    snap.docs.forEach(d => { const data=d.data(); if(data.name) fbStats[data.name]=data; });
+    if(Object.keys(fbStats).length){
+      localStorage.setItem('bb_stats', JSON.stringify(fbStats));
+      if(window._fbCallbacks?.onStats) window._fbCallbacks.onStats(fbStats);
     }
   });
 
-  // Announcement — shows banner to everyone live
+  onSnapshot(doc(db, 'settings', 'controls'), snap => {
+    if(snap.exists()){
+      localStorage.setItem('bb_ctrl', JSON.stringify(snap.data()));
+      if(window._fbCallbacks?.onCtrl) window._fbCallbacks.onCtrl(snap.data());
+    }
+  });
+
   onSnapshot(doc(db, 'settings', 'announcement'), snap => {
     if(snap.exists()){
-      const text = snap.data().text || '';
+      const text = snap.data().text||'';
       localStorage.setItem('bb_ann', JSON.stringify(text));
-      const bar = document.getElementById('announce-bar');
-      if(bar){ bar.textContent = text ? '📢 '+text : ''; bar.classList.toggle('on', !!text); }
+      if(window._fbCallbacks?.onAnn) window._fbCallbacks.onAnn(text);
     }
   });
 
@@ -647,7 +636,7 @@ nav{display:flex;padding:0 20px;height:38px;overflow-x:auto;gap:0;}
       <div class="rules-body" id="rules-body">
         <div class="rules-step">
           <div class="rules-step-n">1</div>
-          <div class="rules-step-text"><strong>Create an account</strong> with your email. Your email auto-generates your team name — jake@gmail.com becomes "Jake's Team". You can create multiple teams.</div>
+          <div class="rules-step-text"><strong>Create an account</strong> with your email. Your email auto-generates your team name — <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f19b909a94b1969c90989ddf929e9c">[email&#160;protected]</a> becomes "Jake's Team". You can create multiple teams.</div>
         </div>
         <div class="rules-step">
           <div class="rules-step-n">2</div>
@@ -1031,8 +1020,12 @@ nav{display:flex;padding:0 20px;height:38px;overflow-x:auto;gap:0;}
       <!-- SCORING CONTROLS -->
       <div class="comm-section">
         <div class="comm-section-title">🔄 Scoring Controls</div>
+        <div style="background:rgba(255,107,26,.08);border:1px solid rgba(255,107,26,.3);padding:12px;margin-bottom:12px;font-size:12px;line-height:1.6">
+          <strong style="color:var(--accent)">⚡ First Time Setup:</strong> Click "Pull All Stats from ESPN" to fetch correct stats for all 70 picked players and push to Firebase. Do this once after resetting stats to 0.
+        </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
           <button class="btn btn-primary btn-sm" onclick="commForceRefresh()">↺ Force ESPN Refresh</button>
+          <button class="btn btn-gold btn-sm" onclick="initializeAllStats()" id="init-stats-btn">⚡ Pull All Stats from ESPN</button>
           <button class="btn btn-ghost btn-sm" onclick="commRecalcAll()">♻ Recalc All Points</button>
           <button class="btn btn-danger btn-sm" onclick="commResetStats()">⚠ Reset All Stats to 0</button>
         </div>
@@ -1128,7 +1121,7 @@ nav{display:flex;padding:0 20px;height:38px;overflow-x:auto;gap:0;}
       <div class="fm-group">
         <label class="fm-label">Email Address</label>
         <input type="email" class="fm-input" id="auth-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doAuth()"/>
-        <div class="fm-hint">jake@gmail.com → "Jake's Team", "Jake's Team 2"…</div>
+        <div class="fm-hint"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c8a2a9a3ad88afa5a9a1a4e6aba7a5">[email&#160;protected]</a> → "Jake's Team", "Jake's Team 2"…</div>
       </div>
       <div class="fm-group">
         <label class="fm-label">Password</label>
@@ -1227,7 +1220,7 @@ nav{display:flex;padding:0 20px;height:38px;overflow-x:auto;gap:0;}
 
 <div id="toast">Saved!</div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ═══════════════════════════════════════════════════════
 // ROSTERS  (all 68 teams from Excel)
 // ═══════════════════════════════════════════════════════
@@ -1521,7 +1514,11 @@ function calcTeamPts(team) {
 }
 
 function recalcAll() {
-  TEAMS.forEach(t => { t.points = calcTeamPts(t); });
+  TEAMS.forEach(t => {
+    t.points = calcTeamPts(t);
+    // Sync updated points to Firebase so everyone sees current scores
+    if(window.fbSaveTeam) window.fbSaveTeam(t).catch(()=>{});
+  });
   saveAll();
 }
 
@@ -2440,11 +2437,166 @@ function commResetStats(){
   toast('All stats reset to 0','err');
 }
 
-// ═══════════════════════════════════════════════════════
-// AUTOMATED SCORING PIPELINE
-// Runs when autoScoring is ON — pulls ESPN box scores
-// and updates fantasy points for every player
-// ═══════════════════════════════════════════════════════
+function commResetStats(){
+  if(!confirm('⚠ Reset ALL player stats to 0? Cannot be undone.')) return;
+  STATS={}; LOGS={};
+  recalcAll();
+  renderCommEntries();
+  saveAll();
+  // Also clear from Firebase
+  if(window._db && window._fb){
+    const {collection,getDocs,deleteDoc} = window._fb;
+    getDocs(collection(window._db,'playerStats')).then(snap=>{
+      snap.docs.forEach(d=>deleteDoc(d.ref).catch(()=>{}));
+    }).catch(()=>{});
+  }
+  toast('All stats reset to 0','err');
+}
+
+// ── ALL PICKED PLAYERS (hardcoded from Firestore team data) ──
+const ALL_PICKED_PLAYERS = {
+  "AJ Brown":"Florida","AJ Dybantsa":"BYU","Abdullah Ahmed":"BYU",
+  "Aday Mara":"Michigan","Aleksas Bieliauskas":"Wisconsin","Alex Condon":"Florida",
+  "Amaree Abram":"Tennessee","Andrej Stojakovic":"Illinois","Blake Anderson":"Miami (OH)",
+  "Boopie Miller":"SMU","Braden Smith":"Purdue","Brant Byers":"Miami (OH)",
+  "Brayden Burries":"Arizona","Bryce Harris":"Howard","Cameron Boozer":"Duke",
+  "Chris Cenac Jr.":"Houston","Christian Anderson":"Texas Tech","Christian Hammond":"Santa Clara",
+  "Coen Carr":"Michigan State","Corbin Allen":"Kansas","Dailyn Swain":"Texas",
+  "Darius Acuff Jr.":"Arkansas","Darryn Peterson":"Kansas","David Mirkovic":"Illinois",
+  "Donovan Atwell":"Texas Tech","Donovan Dent":"UCLA","Duke Miles":"Vanderbilt",
+  "Dwayne Aristode":"Arizona","Dylan Darling":"St. John's","Emanuel Sharp":"Houston",
+  "Fletcher Loyer":"Purdue","Flory Bidunga":"Kansas","Graham Ike":"Gonzaga",
+  "Isaiah Brown":"Howard","Ja'Kobi Gillespie":"Tennessee","Jack Benter":"Purdue",
+  "Jaden Bradley":"Arizona","Jamarion Batemon":"Iowa State","Jeremy Fears Jr.":"Michigan State",
+  "Joshua Jefferson":"Iowa State","Keaton Wagler":"Illinois","Kingston Flemings":"Houston",
+  "Koa Peat":"Arizona","Labaron Philon Jr.":"Alabama","Marcus Millender":"Georgia",
+  "Marial Akuentok":"Texas Tech","Mark Mitchell":"Missouri","Melvin Council Jr.":"Kansas",
+  "Mikel Brown Jr.":"Louisville","Milan Momcilovic":"Iowa State","Nasir Whitlock":"Lehigh",
+  "Nate Ament":"Tennessee","Nick Boyd":"Wisconsin","Nimari Burnett":"Michigan",
+  "Pryce Sandfort":"Nebraska","Rueben Chinyelu":"Florida","Silas Demary Jr.":"UConn",
+  "Solo Ball":"UConn","Tamin Lipsey":"Iowa State","Tarris Reed Jr.":"UConn",
+  "Thijs De Ridder":"Virginia","Thomas Haugh":"Florida","Toni Bilic":"Illinois",
+  "Tre White":"Kansas","Trey Kaufman-Renn":"Purdue","Tyler Bilodeau":"UCLA",
+  "Tyler Perkins":"Villanova","Tyler Tanner":"Vanderbilt","Yaxel Lendeborg":"Michigan",
+  "Zuby Ejiofor":"St. John's",
+};
+
+async function initializeAllStats(){
+  const btn = document.getElementById('init-stats-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Fetching…';
+  document.getElementById('refresh-status').textContent = 'Fetching ESPN scoreboard…';
+
+  try{
+    // Get all completed tournament games
+    const urls = [
+      'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?groups=100&limit=64',
+      'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?limit=100',
+    ];
+    let events = [];
+    for(const url of urls){
+      try{
+        const r = await fetch(url);
+        const d = await r.json();
+        events = d.events||[];
+        if(events.length >= 2) break;
+      }catch(e){ continue; }
+    }
+
+    // Filter to completed tournament games only
+    const doneGames = events.filter(e=>{
+      if(e.status?.type?.state !== 'post') return false;
+      const comps = e.competitions?.[0]?.competitors||[];
+      return comps.filter(c=>espnTeamToRosterKey(c.team?.displayName||'')).length >= 2;
+    });
+
+    document.getElementById('refresh-status').textContent = `Found ${doneGames.length} completed tournament games. Fetching box scores…`;
+
+    // Reset stats first
+    const freshStats = {};
+    Object.keys(ALL_PICKED_PLAYERS).forEach(p=>{
+      freshStats[p] = {pts:0,reb:0,ast:0,stl:0,blk:0,to:0,foul:0,gamesPlayed:0};
+    });
+
+    let gamesProcessed = 0;
+    let playersFound = 0;
+
+    for(const ev of doneGames){
+      const gameId = ev.id;
+      const data = await fetchBoxScore(gameId);
+      if(!data) continue;
+
+      const boxPlayers = parseBoxScore(data);
+      if(!boxPlayers.length) continue;
+
+      const comp = ev.competitions?.[0];
+      const gameTeams = (comp?.competitors||[]).map(c=>({
+        espnName: c.team?.displayName||'',
+        rosterKey: espnTeamToRosterKey(c.team?.displayName||''),
+      }));
+
+      // Build pick map for this game
+      const teamPickMap = {};
+      gameTeams.forEach(({rosterKey})=>{
+        if(!rosterKey) return;
+        const pickedFromTeam = Object.entries(ALL_PICKED_PLAYERS)
+          .filter(([,team])=>team===rosterKey)
+          .map(([player])=>player);
+        if(pickedFromTeam.length) teamPickMap[rosterKey] = pickedFromTeam;
+      });
+
+      if(!Object.keys(teamPickMap).length) continue;
+
+      boxPlayers.forEach(bp=>{
+        let matchedPlayer = null;
+        for(const [,pickedList] of Object.entries(teamPickMap)){
+          const m = fuzzyMatchPlayer(bp.name, pickedList);
+          if(m){ matchedPlayer=m; break; }
+        }
+        if(!matchedPlayer) return;
+        if(!freshStats[matchedPlayer]) return; // not a picked player
+
+        ['pts','reb','ast','stl','blk','to','foul'].forEach(k=>{
+          freshStats[matchedPlayer][k] = (freshStats[matchedPlayer][k]||0) + (bp[k]||0);
+        });
+        freshStats[matchedPlayer].gamesPlayed = (freshStats[matchedPlayer].gamesPlayed||0) + 1;
+        playersFound++;
+      });
+
+      gamesProcessed++;
+      document.getElementById('refresh-status').textContent = `Processed ${gamesProcessed}/${doneGames.length} games…`;
+    }
+
+    // Apply to STATS
+    Object.entries(freshStats).forEach(([name,stats])=>{
+      STATS[name] = stats;
+    });
+
+    // Push ALL to Firebase
+    let pushed = 0;
+    for(const [name,stats] of Object.entries(freshStats)){
+      if(window.fbSavePlayerStats){
+        await window.fbSavePlayerStats(name, stats).catch(()=>{});
+        pushed++;
+      }
+    }
+
+    recalcAll();
+    saveAll();
+    renderCommEntries();
+
+    const msg = `✅ Done! Processed ${gamesProcessed} games, found stats for ${playersFound} player-game entries, pushed ${pushed} players to Firebase.`;
+    document.getElementById('refresh-status').textContent = msg;
+    toast('Stats initialized! ✓','ok');
+
+  } catch(err){
+    document.getElementById('refresh-status').textContent = `Error: ${err.message}`;
+    toast('Error fetching stats','err');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '⚡ Pull All Stats from ESPN';
+}
 
 // Fuzzy name matcher — handles ESPN abbreviations vs full names
 // ── EXPLICIT ESPN NAME MAP ─────────────────────────────
@@ -2760,10 +2912,13 @@ function detectRound(ev){
 let _processedGames = new Set(LS.g('bb_processed_games',[]));
 
 async function runScoringPipeline(events){
+  // Only run on commissioner browser — prevents every user's browser
+  // from independently accumulating stats and causing wrong totals
+  if(!COMM_AUTHED) return;
+
   const pickedPlayers = getAllPickedPlayers();
   if(!pickedPlayers.size) return;
 
-  // Only process tournament games
   const activeEvents = events.filter(e=>{
     const state = e.status?.type?.state;
     if(state!=='in' && state!=='post') return false;
@@ -2791,7 +2946,6 @@ async function runScoringPipeline(events){
       rosterKey: espnTeamToRosterKey(c.team?.displayName||c.team?.name||''),
     }));
 
-    // Build a map: rosterTeamKey → list of picked players from that team
     const teamPickMap = {};
     gameTeams.forEach(({rosterKey})=>{
       if(!rosterKey || !ROSTERS[rosterKey]) return;
@@ -2799,13 +2953,11 @@ async function runScoringPipeline(events){
       if(picked.length) teamPickMap[rosterKey] = picked;
     });
 
-    if(!Object.keys(teamPickMap).length) continue; // nobody picked from teams in this game
+    if(!Object.keys(teamPickMap).length) continue;
 
     boxPlayers.forEach(bp=>{
       let matchedPlayer = null;
       let matchedTeam   = null;
-
-      // Try to match against picked players from teams in THIS game only
       for(const [rosterKey, pickedList] of Object.entries(teamPickMap)){
         const m = fuzzyMatchPlayer(bp.name, pickedList);
         if(m){ matchedPlayer=m; matchedTeam=rosterKey; break; }
@@ -2813,7 +2965,6 @@ async function runScoringPipeline(events){
       if(!matchedPlayer) return;
 
       const opp = gameTeams.find(t=>t.rosterKey!==matchedTeam)?.espnName || 'Opponent';
-
       if(!STATS[matchedPlayer]) STATS[matchedPlayer]={pts:0,reb:0,ast:0,stl:0,blk:0,to:0,foul:0,gamesPlayed:0};
 
       if(state==='in'){
@@ -2849,6 +3000,10 @@ async function runScoringPipeline(events){
   }
 
   if(anyUpdated){
+    // Push all updated stats to Firebase so everyone sees correct points
+    Object.entries(STATS).forEach(([name,stats])=>{
+      if(window.fbSavePlayerStats) window.fbSavePlayerStats(name,stats).catch(()=>{});
+    });
     recalcAll();
     saveAll();
     document.getElementById('refresh-status').textContent='Auto-scored at '+new Date().toLocaleTimeString();
@@ -3546,6 +3701,39 @@ function init(){
   if(CUR_USER&&USERS[CUR_USER]) updateAuthUI();
   if(EJ_CONFIG.pub){ try{ emailjs.init(EJ_CONFIG.pub); }catch(e){} }
 
+  // Register Firebase callbacks — these run when Firestore sends updates
+  // AFTER init() has set up all variables
+  window._fbCallbacks = {
+    onTeams: (fbTeams) => {
+      TEAMS.length=0; fbTeams.forEach(t=>TEAMS.push(t));
+      recalcAll(); renderLB('all'); renderHomeLB(); updateHeroStats();
+      if(document.getElementById('page-myteams')?.classList.contains('active')) renderMyTeams();
+      if(document.getElementById('page-commissioner')?.classList.contains('active')) renderCommEntries();
+    },
+    onUsers: (fbUsers) => {
+      Object.keys(USERS).forEach(k=>delete USERS[k]);
+      Object.assign(USERS, fbUsers);
+      updateHeroStats();
+      if(document.getElementById('page-commissioner')?.classList.contains('active')){ renderCommUsers(); renderCommEmails(); }
+    },
+    onStats: (fbStats) => {
+      Object.keys(STATS).forEach(k=>delete STATS[k]);
+      Object.assign(STATS, fbStats);
+      recalcAll(); renderLB('all'); renderHomeLB();
+      if(document.getElementById('page-myteams')?.classList.contains('active')) renderMyTeams();
+    },
+    onCtrl: (ctrl) => {
+      Object.keys(CTRL).forEach(k=>delete CTRL[k]);
+      Object.assign(CTRL, ctrl);
+      applyLockUI();
+    },
+    onAnn: (text) => {
+      ANN=text;
+      const bar=document.getElementById('announce-bar');
+      if(bar){ bar.textContent=text?'📢 '+text:''; bar.classList.toggle('on',!!text); }
+    },
+  };
+
   // Clean up any bad bracket results (non-tournament teams stored by old code)
   let bracDirty=false;
   Object.keys(BRAC).forEach(key=>{
@@ -3575,10 +3763,7 @@ function init(){
     if(ap==='page-home')        { loadHomeGames(); renderHomeLB(); }
     if(ap==='page-leaderboard') { recalcAll(); renderLB('all'); }
     if(ap==='page-myteams')     { recalcAll(); renderMyTeams(); }
-    // Always run scoring pipeline if enabled, regardless of active page
-    if(CTRL.autoScoring && ALL_GAMES.length){
-      await runScoringPipeline(ALL_GAMES);
-    }
+    if(CTRL.autoScoring && ALL_GAMES.length){ await runScoringPipeline(ALL_GAMES); }
   },45000);
 }
 
