@@ -2485,114 +2485,120 @@ async function initializeAllStats(){
   const btn = document.getElementById('init-stats-btn');
   btn.disabled = true;
   btn.textContent = '⏳ Fetching…';
-  document.getElementById('refresh-status').textContent = 'Fetching ESPN scoreboard…';
+  const statusEl = document.getElementById('refresh-status');
+  statusEl.textContent = 'Fetching tournament games by date…';
 
-  try{
-    // Get all completed tournament games
-    const urls = [
-      'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?groups=100&limit=64',
-      'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?limit=100',
-    ];
-    let events = [];
-    for(const url of urls){
-      try{
-        const r = await fetch(url);
-        const d = await r.json();
-        events = d.events||[];
-        if(events.length >= 2) break;
-      }catch(e){ continue; }
-    }
+  // Tournament dates: March 17-22 (R64 + play-ins), March 20-23 (R32)
+  // We fetch each day's scoreboard separately
+  const tournamentDates = [
+    '20260317','20260318','20260319','20260320',
+    '20260321','20260322','20260323','20260324','20260325','20260326','20260327','20260328'
+  ];
 
-    // Filter to completed tournament games only
-    const doneGames = events.filter(e=>{
-      if(e.status?.type?.state !== 'post') return false;
-      const comps = e.competitions?.[0]?.competitors||[];
-      return comps.filter(c=>espnTeamToRosterKey(c.team?.displayName||'')).length >= 2;
-    });
-
-    document.getElementById('refresh-status').textContent = `Found ${doneGames.length} completed tournament games. Fetching box scores…`;
-
-    // Reset stats first
-    const freshStats = {};
-    Object.keys(ALL_PICKED_PLAYERS).forEach(p=>{
-      freshStats[p] = {pts:0,reb:0,ast:0,stl:0,blk:0,to:0,foul:0,gamesPlayed:0};
-    });
-
-    let gamesProcessed = 0;
-    let playersFound = 0;
-
-    for(const ev of doneGames){
-      const gameId = ev.id;
-      const data = await fetchBoxScore(gameId);
-      if(!data) continue;
-
-      const boxPlayers = parseBoxScore(data);
-      if(!boxPlayers.length) continue;
-
-      const comp = ev.competitions?.[0];
-      const gameTeams = (comp?.competitors||[]).map(c=>({
-        espnName: c.team?.displayName||'',
-        rosterKey: espnTeamToRosterKey(c.team?.displayName||''),
-      }));
-
-      // Build pick map for this game
-      const teamPickMap = {};
-      gameTeams.forEach(({rosterKey})=>{
-        if(!rosterKey) return;
-        const pickedFromTeam = Object.entries(ALL_PICKED_PLAYERS)
-          .filter(([,team])=>team===rosterKey)
-          .map(([player])=>player);
-        if(pickedFromTeam.length) teamPickMap[rosterKey] = pickedFromTeam;
+  let allGames = [];
+  for(const date of tournamentDates){
+    try{
+      const url = `https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard?dates=${date}&limit=64`;
+      const r = await fetch(url);
+      const d = await r.json();
+      const events = (d.events||[]).filter(e=>{
+        if(e.status?.type?.state !== 'post') return false;
+        const comps = e.competitions?.[0]?.competitors||[];
+        return comps.filter(c=>espnTeamToRosterKey(c.team?.displayName||'')).length >= 2;
       });
-
-      if(!Object.keys(teamPickMap).length) continue;
-
-      boxPlayers.forEach(bp=>{
-        let matchedPlayer = null;
-        for(const [,pickedList] of Object.entries(teamPickMap)){
-          const m = fuzzyMatchPlayer(bp.name, pickedList);
-          if(m){ matchedPlayer=m; break; }
-        }
-        if(!matchedPlayer) return;
-        if(!freshStats[matchedPlayer]) return; // not a picked player
-
-        ['pts','reb','ast','stl','blk','to','foul'].forEach(k=>{
-          freshStats[matchedPlayer][k] = (freshStats[matchedPlayer][k]||0) + (bp[k]||0);
-        });
-        freshStats[matchedPlayer].gamesPlayed = (freshStats[matchedPlayer].gamesPlayed||0) + 1;
-        playersFound++;
-      });
-
-      gamesProcessed++;
-      document.getElementById('refresh-status').textContent = `Processed ${gamesProcessed}/${doneGames.length} games…`;
-    }
-
-    // Apply to STATS
-    Object.entries(freshStats).forEach(([name,stats])=>{
-      STATS[name] = stats;
-    });
-
-    // Push ALL to Firebase
-    let pushed = 0;
-    for(const [name,stats] of Object.entries(freshStats)){
-      if(window.fbSavePlayerStats){
-        await window.fbSavePlayerStats(name, stats).catch(()=>{});
-        pushed++;
-      }
-    }
-
-    recalcAll();
-    saveAll();
-    renderCommEntries();
-
-    const msg = `✅ Done! Processed ${gamesProcessed} games, found stats for ${playersFound} player-game entries, pushed ${pushed} players to Firebase.`;
-    document.getElementById('refresh-status').textContent = msg;
-    toast('Stats initialized! ✓','ok');
-
-  } catch(err){
-    document.getElementById('refresh-status').textContent = `Error: ${err.message}`;
-    toast('Error fetching stats','err');
+      allGames = allGames.concat(events);
+      statusEl.textContent = `Checked ${date}: found ${events.length} tournament games (total: ${allGames.length})…`;
+    }catch(e){ continue; }
   }
+
+  // Deduplicate by game ID
+  const seen = new Set();
+  allGames = allGames.filter(e=>{ if(seen.has(e.id)) return false; seen.add(e.id); return true; });
+
+  statusEl.textContent = `Found ${allGames.length} completed tournament games. Fetching box scores…`;
+
+  if(allGames.length === 0){
+    statusEl.textContent = '⚠ No tournament games found. Try entering stats manually via Player Stats Override.';
+    btn.disabled = false;
+    btn.textContent = '⚡ Pull All Stats from ESPN';
+    return;
+  }
+
+  // Fresh stats object — start from 0
+  const freshStats = {};
+  Object.keys(ALL_PICKED_PLAYERS).forEach(p=>{
+    freshStats[p] = {pts:0,reb:0,ast:0,stl:0,blk:0,to:0,foul:0,gamesPlayed:0};
+  });
+
+  let gamesProcessed = 0;
+  let playersFound = 0;
+
+  for(const ev of allGames){
+    const data = await fetchBoxScore(ev.id);
+    if(!data){ continue; }
+
+    const boxPlayers = parseBoxScore(data);
+    if(!boxPlayers.length) continue;
+
+    const comp = ev.competitions?.[0];
+    const gameTeams = (comp?.competitors||[]).map(c=>({
+      espnName: c.team?.displayName||'',
+      rosterKey: espnTeamToRosterKey(c.team?.displayName||''),
+    }));
+
+    // Build pick map for this specific game's teams only
+    const teamPickMap = {};
+    gameTeams.forEach(({rosterKey})=>{
+      if(!rosterKey) return;
+      const pickedFromTeam = Object.entries(ALL_PICKED_PLAYERS)
+        .filter(([,team])=>team===rosterKey)
+        .map(([player])=>player);
+      if(pickedFromTeam.length) teamPickMap[rosterKey] = pickedFromTeam;
+    });
+
+    if(!Object.keys(teamPickMap).length){ gamesProcessed++; continue; }
+
+    boxPlayers.forEach(bp=>{
+      let matchedPlayer = null;
+      for(const [,pickedList] of Object.entries(teamPickMap)){
+        const m = fuzzyMatchPlayer(bp.name, pickedList);
+        if(m){ matchedPlayer=m; break; }
+      }
+    if(!matchedPlayer || !freshStats[matchedPlayer]){
+      // Log unmatched players so commissioner can add name mappings
+      if(bp.name) console.log(`[UNMATCHED] "${bp.name}" in game ${ev.id}`);
+      return;
+    }
+
+      ['pts','reb','ast','stl','blk','to','foul'].forEach(k=>{
+        freshStats[matchedPlayer][k] = (freshStats[matchedPlayer][k]||0) + (bp[k]||0);
+      });
+      freshStats[matchedPlayer].gamesPlayed = (freshStats[matchedPlayer].gamesPlayed||0) + 1;
+      playersFound++;
+    });
+
+    gamesProcessed++;
+    statusEl.textContent = `Processed ${gamesProcessed}/${allGames.length} games, ${playersFound} player-game matches…`;
+  }
+
+  // Apply to local STATS
+  Object.entries(freshStats).forEach(([name,stats])=>{ STATS[name] = stats; });
+
+  // Push to Firebase
+  let pushed = 0;
+  for(const [name,stats] of Object.entries(freshStats)){
+    if(window.fbSavePlayerStats){
+      await window.fbSavePlayerStats(name, stats).catch(()=>{});
+      pushed++;
+    }
+  }
+
+  recalcAll();
+  saveAll();
+  renderCommEntries();
+
+  statusEl.textContent = `✅ Done! ${gamesProcessed} games, ${playersFound} player-game matches, ${pushed} players pushed to Firebase.`;
+  toast('Stats initialized! ✓','ok');
 
   btn.disabled = false;
   btn.textContent = '⚡ Pull All Stats from ESPN';
@@ -2604,25 +2610,103 @@ async function initializeAllStats(){
 // Format: 'ESPN name as it appears': 'Exact roster name'
 const ESPN_NAME_MAP = {
   // Boozer disambiguation — Duke
-  'cameron boozer':  'Cameron Boozer',
-  'cayden boozer':   'Cayden Boozer',
-  'cam boozer':      'Cameron Boozer',
-  // Common ESPN abbreviations / alternate spellings
-  'aj dybantsa':     'AJ Dybantsa',
-  'a.j. dybantsa':   'AJ Dybantsa',
-  'tj toppin':       'JT Toppin',
-  't.j. toppin':     'JT Toppin',
-  'jt toppin':       'JT Toppin',
-  'ismaila diagne':  'Ismaila Diagne',
-  'boogie fland':    'Boogie Fland',
-  'solo ball':       'Solo Ball',
-  'puff johnson':    'Puff Johnson',
-  'ak okereke':      'AK Okereke',
-  'dj wagner':       'D.J. Wagner',
-  'd.j. wagner':     'D.J. Wagner',
-  'bj powell':       'BJ Powell',
-  'b.j. powell':     'BJ Powell',
-  // Add more here as you spot issues during the tournament
+  'cameron boozer':   'Cameron Boozer',
+  'cayden boozer':    'Cayden Boozer',
+  'cam boozer':       'Cameron Boozer',
+  // Common ESPN short names
+  'aj dybantsa':      'AJ Dybantsa',
+  'a.j. dybantsa':    'AJ Dybantsa',
+  'jt toppin':        'JT Toppin',
+  'j.t. toppin':      'JT Toppin',
+  'tj toppin':        'JT Toppin',
+  // Joshua Jefferson — ESPN often uses Josh
+  'josh jefferson':   'Joshua Jefferson',
+  'joshua jefferson': 'Joshua Jefferson',
+  // Kingston Flemings — ESPN sometimes drops the s
+  'kingston fleming': 'Kingston Flemings',
+  'kingston flemings':'Kingston Flemings',
+  // Graham Ike
+  'graham ike':       'Graham Ike',
+  // Other common ESPN variants
+  'darius acuff':     'Darius Acuff Jr.',
+  'darius acuff jr':  'Darius Acuff Jr.',
+  'labaron philon':   'Labaron Philon Jr.',
+  'labaron philon jr':'Labaron Philon Jr.',
+  'jeremy fears':     'Jeremy Fears Jr.',
+  'jeremy fears jr':  'Jeremy Fears Jr.',
+  'mikel brown':      'Mikel Brown Jr.',
+  'mikel brown jr':   'Mikel Brown Jr.',
+  'tarris reed':      'Tarris Reed Jr.',
+  'tarris reed jr':   'Tarris Reed Jr.',
+  'trey kaufman-renn':'Trey Kaufman-Renn',
+  'trey kaufman renn':'Trey Kaufman-Renn',
+  'pryce sandfort':   'Pryce Sandfort',
+  'jakobia gillespie':"Ja'Kobi Gillespie",
+  "ja'kobi gillespie":"Ja'Kobi Gillespie",
+  'jakobi gillespie': "Ja'Kobi Gillespie",
+  'silas demary':     'Silas Demary Jr.',
+  'silas demary jr':  'Silas Demary Jr.',
+  'thijs de ridder':  'Thijs De Ridder',
+  'yaxel lendeborg':  'Yaxel Lendeborg',
+  'zuby ejiofor':     'Zuby Ejiofor',
+  'keaton wagler':    'Keaton Wagler',
+  'aday mara':        'Aday Mara',
+  'brayden burries':  'Brayden Burries',
+  'koa peat':         'Koa Peat',
+  'darryn peterson':  'Darryn Peterson',
+  'flory bidunga':    'Flory Bidunga',
+  'milan momcilovic': 'Milan Momcilovic',
+  'andrej stojakovic':'Andrej Stojakovic',
+  'toni bilic':       'Toni Bilic',
+  'david mirkovic':   'David Mirkovic',
+  'nate ament':       'Nate Ament',
+  'boopie miller':    'Boopie Miller',
+  'dailyn swain':     'Dailyn Swain',
+  'nasir whitlock':   'Nasir Whitlock',
+  'thomas haugh':     'Thomas Haugh',
+  'alex condon':      'Alex Condon',
+  'rueben chinyelu':  'Rueben Chinyelu',
+  'aj brown':         'AJ Brown',
+  'a.j. brown':       'AJ Brown',
+  'solo ball':        'Solo Ball',
+  'emanual sharp':    'Emanuel Sharp',
+  'emanuel sharp':    'Emanuel Sharp',
+  'chris cenac':      'Chris Cenac Jr.',
+  'chris cenac jr':   'Chris Cenac Jr.',
+  'corbin allen':     'Corbin Allen',
+  'tre white':        'Tre White',
+  'brant byers':      'Brant Byers',
+  'blake anderson':   'Blake Anderson',
+  'isaiah brown':     'Isaiah Brown',
+  'jamarion batemon': 'Jamarion Batemon',
+  'tamin lipsey':     'Tamin Lipsey',
+  'marial akuentok':  'Marial Akuentok',
+  'dylan darling':    'Dylan Darling',
+  'amaree abram':     'Amaree Abram',
+  'nimari burnett':   'Nimari Burnett',
+  'jack benter':      'Jack Benter',
+  'marcus millender': 'Marcus Millender',
+  'tyler perkins':    'Tyler Perkins',
+  'duke miles':       'Duke Miles',
+  'tyler tanner':     'Tyler Tanner',
+  'donovan dent':     'Donovan Dent',
+  'tyler bilodeau':   'Tyler Bilodeau',
+  'christian hammond':'Christian Hammond',
+  'mark mitchell':    'Mark Mitchell',
+  'nick boyd':        'Nick Boyd',
+  'aleksas bieliauskas':'Aleksas Bieliauskas',
+  'coen carr':        'Coen Carr',
+  'melvin council':   'Melvin Council Jr.',
+  'melvin council jr':'Melvin Council Jr.',
+  'christian anderson':'Christian Anderson',
+  'donovan atwell':   'Donovan Atwell',
+  'fletcher loyer':   'Fletcher Loyer',
+  'bryce harris':     'Bryce Harris',
+  'dwayne aristode':  'Dwayne Aristode',
+  'abdullah ahmed':   'Abdullah Ahmed',
+  'jaden bradley':    'Jaden Bradley',
+  'graham ike':       'Graham Ike',
+  'yaxel lendeborg':  'Yaxel Lendeborg',
 };
 
 function fuzzyMatchPlayer(espnName, rosterNames){
@@ -2689,34 +2773,74 @@ async function fetchBoxScore(gameId){
 }
 
 function parseBoxScore(data){
-  // Returns array of {name, pts, reb, ast, stl, blk, to, foul}
   const players = [];
-  const boxTeams = data?.boxscore?.players || data?.players || [];
+
+  // Try multiple ESPN response structures
+  // Structure 1: data.boxscore.players (most common)
+  // Structure 2: data.athletes
+  // Structure 3: data.boxscore.teams[].statistics
+  // Structure 4: data.teams[].athletes
+
+  let boxTeams = [];
+
+  if(data?.boxscore?.players?.length)       boxTeams = data.boxscore.players;
+  else if(data?.players?.length)             boxTeams = data.players;
+  else if(data?.boxscore?.teams?.length){
+    // Alternative structure
+    boxTeams = data.boxscore.teams.map(t=>({
+      statistics: t.statistics||[],
+      athletes: t.athletes||[],
+    }));
+  }
+
   boxTeams.forEach(teamSection => {
     const stats = teamSection.statistics || [];
-    const athletes = stats[0]?.athletes || teamSection.athletes || [];
-    const labels = stats[0]?.labels || stats[0]?.names || [];
+    let athletes = [];
+    let labels = [];
+
+    if(stats.length && stats[0]?.athletes){
+      athletes = stats[0].athletes;
+      labels = stats[0]?.labels || stats[0]?.names || [];
+    } else if(teamSection.athletes?.length){
+      athletes = teamSection.athletes;
+      // Try to get labels from stats
+      labels = stats[0]?.labels || stats[0]?.names || [];
+    }
+
     athletes.forEach(ath => {
-      if(!ath.active && ath.didNotPlay) return;
-      const name = ath.athlete?.displayName || ath.athlete?.shortName || '';
+      if(ath.didNotPlay) return;
+      const name = ath.athlete?.displayName || ath.athlete?.fullName || ath.athlete?.shortName || '';
       if(!name) return;
+
       const vals = ath.stats || [];
+
+      // Try label-based lookup first, then fall back to index-based
       const g = lbl => {
         const i = labels.indexOf(lbl);
-        return i >= 0 ? parseInt(vals[i]) || 0 : 0;
+        if(i >= 0 && vals[i] !== undefined) return parseInt(vals[i]) || 0;
+        return 0;
       };
-      players.push({
-        name,
-        pts:  g('PTS'),
-        reb:  g('REB'),
-        ast:  g('AST'),
-        stl:  g('STL'),
-        blk:  g('BLK'),
-        to:   g('TO'),
-        foul: g('PF'),
-      });
+
+      // Known ESPN stat array positions (fallback when labels are missing):
+      // [MIN, FG, 3PT, FT, OREB, DREB, REB, AST, STL, BLK, TO, PF, +/-, PTS]
+      const byIdx = (i) => parseInt(vals[i]) || 0;
+
+      const hasLabels = labels.length > 0;
+      const pts  = hasLabels ? g('PTS')  : byIdx(13);
+      const reb  = hasLabels ? g('REB')  : byIdx(6);
+      const ast  = hasLabels ? g('AST')  : byIdx(7);
+      const stl  = hasLabels ? g('STL')  : byIdx(8);
+      const blk  = hasLabels ? g('BLK')  : byIdx(9);
+      const to   = hasLabels ? g('TO')   : byIdx(10);
+      const foul = hasLabels ? g('PF')   : byIdx(11);
+
+      // Only add if player actually played (has any stats)
+      if(vals.length === 0) return;
+
+      players.push({ name, pts, reb, ast, stl, blk, to, foul });
     });
   });
+
   return players;
 }
 
