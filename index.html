@@ -1922,9 +1922,9 @@ function buildBRound(pairs){
   pairs.forEach(([t1,t2])=>{
     const r=getBR(t1?.name,t2?.name);
     const w=r?.winner||null;
-    // Commissioner can click a team bubble to advance them
-    const c1 = COMM_AUTHED && t1?.name && t1.name!=='TBD' && !t1.isPI;
-    const c2 = COMM_AUTHED && t2?.name && t2.name!=='TBD' && !t2.isPI;
+    // Allow commissioner to click ANY resolved team (including play-in winners)
+    const c1 = COMM_AUTHED && t1?.name && t1.name!=='TBD';
+    const c2 = COMM_AUTHED && t2?.name && t2.name!=='TBD';
     const n1e = (t1?.name||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     const n2e = (t2?.name||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     html+=`<div class="b-game">
@@ -1951,6 +1951,30 @@ function buildBRound(pairs){
 // Commissioner clicks a team to advance them — toggle off by clicking winner again
 function advanceTeam(winner, loser){
   if(!COMM_AUTHED) return;
+
+  // Check if this is a play-in matchup
+  const piEntry = Object.entries(PLAY_IN).find(([,pi])=>
+    (pi.t1===winner||pi.t2===winner) && (pi.t1===loser||pi.t2===loser)
+  );
+
+  if(piEntry){
+    const [piId] = piEntry;
+    if(PI[piId]===winner){
+      if(!confirm(`Undo: remove "${winner}" as play-in winner?`)) return;
+      delete PI[piId];
+      LS.s('bb_pi',PI);
+      renderBracket();
+      toast('Play-in result removed','ok');
+    } else {
+      PI[piId]=winner;
+      LS.s('bb_pi',PI);
+      renderBracket();
+      toast(`${winner} advanced from play-in ✓`,'ok');
+    }
+    return;
+  }
+
+  // Regular game
   const key=[winner,loser].sort().join('__');
   if(BRAC[key]?.winner===winner){
     if(!confirm(`Undo: remove "${winner} beat ${loser}"?`)) return;
@@ -1969,7 +1993,8 @@ function advanceTeam(winner, loser){
 function advanceWinner(pair){
   if(!pair||!pair[0]||!pair[1]) return {seed:'?',name:'TBD'};
   const [t1,t2]=pair;
-  if(t1.isPI||t2.isPI) return {seed:'?',name:'TBD'}; // can't advance unresolved play-in
+  // If either team is still an unresolved play-in, return TBD
+  if(t1.isPI||t2.isPI) return {seed:'?',name:'TBD'};
   const r=getBR(t1.name,t2.name);
   if(!r) return {seed:'?',name:'TBD'};
   return r.winner===t1.name?t1:t2;
@@ -4183,6 +4208,18 @@ function toast(msg,type=''){
 // ═══════════════════════════════════════════════════════
 function init(){
   loadAll();
+  // Apply spreadsheet stats as fallback for any missing players
+  // This ensures correct points on every device without relying on Firebase playerStats
+  if(typeof EXCEL_STATS !== 'undefined'){
+    let filled = 0;
+    Object.entries(EXCEL_STATS).forEach(([name,stats])=>{
+      if(!STATS[name] || (STATS[name].pts===0 && stats.pts>0)){
+        STATS[name] = stats;
+        filled++;
+      }
+    });
+    if(filled > 0){ LS.s('bb_stats', STATS); }
+  }
   TEXT_OVERRIDES = LS.g('bb_text_overrides', {});
   initTheme();
   if(CUR_USER&&USERS[CUR_USER]) updateAuthUI();
@@ -4253,15 +4290,29 @@ function init(){
     onStats: (fbStats) => {
       const fbCount = Object.keys(fbStats).length;
       const localCount = Object.keys(STATS).length;
-      // Only overwrite local stats if Firebase has at least as many players
-      // Prevents partial Firestore snapshots from wiping a full local load
-      if(fbCount >= localCount){
+
+      if(fbCount > localCount || localCount === 0){
         Object.keys(STATS).forEach(k=>delete STATS[k]);
         Object.assign(STATS, fbStats);
         LS.s('bb_stats', STATS);
-      } else {
-        console.log(`Firebase stats (${fbCount}) < local (${localCount}) — keeping local`);
       }
+
+      // If Firebase has fewer than 52 players, fill gaps from hardcoded spreadsheet
+      // This ensures everyone sees correct points regardless of Firebase state
+      if(typeof EXCEL_STATS !== 'undefined'){
+        let filled = 0;
+        Object.entries(EXCEL_STATS).forEach(([name,stats])=>{
+          if(!STATS[name] || STATS[name].pts === 0){
+            STATS[name] = stats;
+            filled++;
+          }
+        });
+        if(filled > 0){
+          LS.s('bb_stats', STATS);
+          console.log(`Filled ${filled} players from EXCEL_STATS fallback`);
+        }
+      }
+
       recalcAll(); renderLB('all'); renderHomeLB();
       if(document.getElementById('page-myteams')?.classList.contains('active')) renderMyTeams();
     },
