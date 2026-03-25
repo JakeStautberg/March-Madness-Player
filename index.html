@@ -4208,17 +4208,13 @@ function toast(msg,type=''){
 // ═══════════════════════════════════════════════════════
 function init(){
   loadAll();
-  // Apply spreadsheet stats as fallback for any missing players
-  // This ensures correct points on every device without relying on Firebase playerStats
+  // Always apply spreadsheet stats — these are the source of truth
+  // Overwrites any partial/wrong stats from Firebase or localStorage
   if(typeof EXCEL_STATS !== 'undefined'){
-    let filled = 0;
     Object.entries(EXCEL_STATS).forEach(([name,stats])=>{
-      if(!STATS[name] || (STATS[name].pts===0 && stats.pts>0)){
-        STATS[name] = stats;
-        filled++;
-      }
+      STATS[name] = stats;
     });
-    if(filled > 0){ LS.s('bb_stats', STATS); }
+    LS.s('bb_stats', STATS);
   }
   TEXT_OVERRIDES = LS.g('bb_text_overrides', {});
   initTheme();
@@ -4288,31 +4284,17 @@ function init(){
       if(document.getElementById('page-commissioner')?.classList.contains('active')){ renderCommUsers(); renderCommEmails(); }
     },
     onStats: (fbStats) => {
-      const fbCount = Object.keys(fbStats).length;
-      const localCount = Object.keys(STATS).length;
+      // Apply Firebase stats first
+      Object.keys(STATS).forEach(k=>delete STATS[k]);
+      Object.assign(STATS, fbStats);
 
-      if(fbCount > localCount || localCount === 0){
-        Object.keys(STATS).forEach(k=>delete STATS[k]);
-        Object.assign(STATS, fbStats);
-        LS.s('bb_stats', STATS);
-      }
-
-      // If Firebase has fewer than 52 players, fill gaps from hardcoded spreadsheet
-      // This ensures everyone sees correct points regardless of Firebase state
+      // Always override with spreadsheet data — source of truth
       if(typeof EXCEL_STATS !== 'undefined'){
-        let filled = 0;
         Object.entries(EXCEL_STATS).forEach(([name,stats])=>{
-          if(!STATS[name] || STATS[name].pts === 0){
-            STATS[name] = stats;
-            filled++;
-          }
+          STATS[name] = stats;
         });
-        if(filled > 0){
-          LS.s('bb_stats', STATS);
-          console.log(`Filled ${filled} players from EXCEL_STATS fallback`);
-        }
       }
-
+      LS.s('bb_stats', STATS);
       recalcAll(); renderLB('all'); renderHomeLB();
       if(document.getElementById('page-myteams')?.classList.contains('active')) renderMyTeams();
     },
