@@ -1025,7 +1025,8 @@ nav{display:flex;padding:0 20px;height:38px;overflow-x:auto;gap:0;}
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
           <button class="btn btn-primary btn-sm" onclick="commForceRefresh()">↺ Force ESPN Refresh</button>
-          <button class="btn btn-gold btn-sm" onclick="initializeAllStats()" id="init-stats-btn">⚡ Pull All Stats from ESPN</button>
+          <button class="btn btn-gold btn-sm" onclick="loadExcelStats()" id="load-excel-btn">📊 Load Stats from Spreadsheet</button>
+          <button class="btn btn-ghost btn-sm" id="init-stats-btn" onclick="initializeAllStats()">⚡ Pull All Stats from ESPN</button>
           <button class="btn btn-ghost btn-sm" onclick="commRecalcAll()">♻ Recalc All Points</button>
           <button class="btn btn-danger btn-sm" onclick="commResetStats()">⚠ Reset All Stats to 0</button>
         </div>
@@ -1079,6 +1080,39 @@ nav{display:flex;padding:0 20px;height:38px;overflow-x:auto;gap:0;}
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Registered Emails (<span id="email-count">0</span>)</div>
         <div id="email-list" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);line-height:2"></div>
       </div>
+      <!-- ADD TEAM MANUALLY -->
+      <div class="comm-section">
+        <div class="comm-section-title">➕ Add Team Manually</div>
+        <p style="font-size:12px;color:var(--muted);font-style:italic;margin-bottom:14px;line-height:1.6">
+          For someone who missed the deadline or emailed you. Fill in their info and picks below — creates their entry directly in Firebase as if they signed up normally.
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div>
+            <label class="fm-label">Owner Email</label>
+            <input type="email" class="fm-input" id="at-email" placeholder="friend@gmail.com" />
+          </div>
+          <div>
+            <label class="fm-label">Team Name</label>
+            <input type="text" class="fm-input" id="at-name" placeholder="e.g. Mike's Team" />
+          </div>
+          <div>
+            <label class="fm-label">Password (for their account)</label>
+            <input type="text" class="fm-input" id="at-pw" placeholder="temp password" value="march2026" />
+          </div>
+          <div>
+            <label class="fm-label">Tiebreaker Guess (total champ pts)</label>
+            <input type="number" class="fm-input" id="at-tb" placeholder="145" min="80" max="300" />
+          </div>
+        </div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Pick 16 Teams &amp; 1 Player Each</div>
+        <div id="at-picks-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px;margin-bottom:12px"></div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:12px">
+          <button class="btn btn-primary" onclick="submitManualTeam()">➕ Add Team to Firebase</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearManualTeamForm()">Clear</button>
+          <span id="at-status" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)"></span>
+        </div>
+      </div>
+
       <!-- USERS -->
       <div class="comm-section">
         <div class="comm-section-title">👥 Users</div>
@@ -1554,7 +1588,14 @@ function calcTeamPts(team) {
 function recalcAll() {
   TEAMS.forEach(t => {
     t.points = calcTeamPts(t);
-    // Sync updated points to Firebase so everyone sees current scores
+  });
+  saveAll();
+}
+
+// Call this explicitly when you want to push team points to Firebase
+function recalcAndSync() {
+  TEAMS.forEach(t => {
+    t.points = calcTeamPts(t);
     if(window.fbSaveTeam) window.fbSaveTeam(t).catch(()=>{});
   });
   saveAll();
@@ -2280,9 +2321,9 @@ function savePicksEdit(){
 
 function delTeam(id){
   if(!confirm('Delete this team permanently?')) return;
-  TEAMS=TEAMS.filter(t=>t.id!==id);
-  saveAll();
   if(window.fbDeleteTeam) window.fbDeleteTeam(id).catch(()=>{});
+  TEAMS=TEAMS.filter(t=>t.id!==id);
+  LS.s('bb_teams',TEAMS);
   toast('Team deleted','err');
   renderMyTeams();
   updateHeroStats();
@@ -2382,6 +2423,7 @@ function loadCommDash(){
   loadEmailConfig();
   renderTextOverrideList();
   renderNameMapList();
+  renderManualTeamPicksGrid();
 }
 
 function renderCommEntries(){
@@ -2435,12 +2477,24 @@ function commViewPicks(id){
 function commDelEntry(id){
   const t=TEAMS.find(x=>x.id===id);
   if(!t||!confirm(`Delete "${t.name}"?`)) return;
+  // Delete from Firebase FIRST
+  if(window.fbDeleteTeam){
+    window.fbDeleteTeam(id).then(()=>{
+      toast(`"${t.name}" deleted ✓`,'err');
+    }).catch(e=>{
+      toast('Firebase delete failed — check connection','err');
+      console.error('Delete failed:',e);
+    });
+  }
+  // Update local state immediately
   TEAMS=TEAMS.filter(x=>x.id!==id);
-  saveAll();
-  if(window.fbDeleteTeam) window.fbDeleteTeam(id).catch(()=>{});
+  // Save to localStorage only — do NOT call recalcAll() which would re-save to Firebase
+  LS.s('bb_teams',TEAMS);
   renderCommEntries();
+  renderLB('all');
+  renderHomeLB();
+  updateHeroStats();
   document.getElementById('cs-entries').textContent=TEAMS.length;
-  toast(`"${t.name}" deleted`,'err');
 }
 
 function renderCommUsers(){
@@ -2505,7 +2559,7 @@ function commSaveStats(){
 }
 
 function commRecalcAll(){
-  recalcAll();
+  recalcAndSync();
   renderCommEntries();
   toast('All team points recalculated ✓','ok');
 }
@@ -2520,13 +2574,129 @@ function commForceRefresh(){
   });
 }
 
-function commResetStats(){
-  if(!confirm('⚠ Reset ALL player stats to 0? Cannot be undone.')) return;
-  STATS={}; LOGS={};
-  recalcAll();
+// ═══════════════════════════════════════════════════════
+// MANUAL TEAM ADDITION
+// ═══════════════════════════════════════════════════════
+function renderManualTeamPicksGrid(){
+  const c = document.getElementById('at-picks-grid');
+  if(!c) return;
+  const regions = ['EAST','WEST','SOUTH','MIDWEST'];
+  let html = '';
+  regions.forEach(r=>{
+    html += `<div style="background:var(--raised);border:1px solid var(--border);padding:10px;grid-column:1/-1">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:8px">◆ ${r}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px">`;
+    ALL68.filter(e=>e.r===r).forEach(e=>{
+      const roster = ROSTERS[e.t]||[];
+      const opts = roster.map(p=>`<option value="${p}">${p}</option>`).join('');
+      html += `<div style="display:flex;gap:6px;align-items:center">
+        <input type="checkbox" id="at-chk-${e.t.replace(/[^a-zA-Z0-9]/g,'_')}" 
+               style="cursor:pointer;flex-shrink:0" 
+               onchange="toggleAtTeam('${e.t.replace(/'/g,"\\'")}')"/>
+        <label style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:80px"
+               for="at-chk-${e.t.replace(/[^a-zA-Z0-9]/g,'_')}">${e.t}</label>
+        <select id="at-sel-${e.t.replace(/[^a-zA-Z0-9]/g,'_')}" 
+                class="slot-sel" style="display:none;font-size:11px;padding:3px 6px">
+          ${opts}
+        </select>
+      </div>`;
+    });
+    html += '</div></div>';
+  });
+  c.innerHTML = html;
+}
+
+function toggleAtTeam(teamName){
+  const key = teamName.replace(/[^a-zA-Z0-9]/g,'_');
+  const chk = document.getElementById('at-chk-'+key);
+  const sel = document.getElementById('at-sel-'+key);
+  if(!chk||!sel) return;
+  sel.style.display = chk.checked ? 'block' : 'none';
+  // Count selected
+  const count = document.querySelectorAll('#at-picks-grid input[type=checkbox]:checked').length;
+  const statusEl = document.getElementById('at-status');
+  if(statusEl) statusEl.textContent = `${count}/16 teams selected`;
+}
+
+async function submitManualTeam(){
+  const email = document.getElementById('at-email').value.trim().toLowerCase();
+  const name  = document.getElementById('at-name').value.trim();
+  const pw    = document.getElementById('at-pw').value.trim()||'march2026';
+  const tb    = parseInt(document.getElementById('at-tb').value)||145;
+  const statusEl = document.getElementById('at-status');
+
+  if(!email||!email.includes('@')){ toast('Valid email required','err'); return; }
+  if(!name){ toast('Team name required','err'); return; }
+
+  // Collect picks
+  const picks = {};
+  const teams = [];
+  document.querySelectorAll('#at-picks-grid input[type=checkbox]:checked').forEach(chk=>{
+    const key = chk.id.replace('at-chk-','');
+    // Find team name from key (reverse the replace)
+    const teamName = ALL68.find(e=>e.t.replace(/[^a-zA-Z0-9]/g,'_')===key)?.t;
+    if(!teamName) return;
+    const sel = document.getElementById('at-sel-'+key);
+    const player = sel?.value||'';
+    picks[teamName] = player;
+    teams.push(teamName);
+  });
+
+  if(teams.length !== 16){
+    toast(`Select exactly 16 teams (${teams.length} selected)`, 'err');
+    return;
+  }
+
+  statusEl.textContent = 'Creating entry…';
+
+  const id = Date.now();
+  const entry = {
+    id, name, owner:email, teams, picks,
+    tiebreaker:tb, points:0, adjustment:0, createdAt:id
+  };
+
+  // Add user if doesn't exist
+  if(!USERS[email]){
+    USERS[email] = {email, pw, joinedAt:id};
+    if(window.fbSaveUser) await window.fbSaveUser(email, USERS[email]).catch(()=>{});
+  }
+
+  // Add team
+  TEAMS.push(entry);
+  entry.points = calcTeamPts(entry);
+
+  // Save to Firebase
+  if(window.fbSaveTeam){
+    await window.fbSaveTeam(entry).catch(e=>{
+      toast('Firebase error — check connection','err');
+      statusEl.textContent = 'Error: '+e.message;
+      return;
+    });
+  }
+
+  LS.s('bb_teams', TEAMS);
+  LS.s('bb_users', USERS);
+
   renderCommEntries();
-  saveAll();
-  toast('All stats reset to 0','err');
+  renderCommUsers();
+  updateHeroStats();
+  document.getElementById('cs-entries').textContent = TEAMS.length;
+  statusEl.textContent = `✅ "${name}" added for ${email}`;
+  toast(`"${name}" added ✓`, 'ok');
+}
+
+function clearManualTeamForm(){
+  document.getElementById('at-email').value='';
+  document.getElementById('at-name').value='';
+  document.getElementById('at-pw').value='march2026';
+  document.getElementById('at-tb').value='';
+  document.querySelectorAll('#at-picks-grid input[type=checkbox]').forEach(chk=>{
+    chk.checked=false;
+    const key=chk.id.replace('at-chk-','');
+    const sel=document.getElementById('at-sel-'+key);
+    if(sel) sel.style.display='none';
+  });
+  document.getElementById('at-status').textContent='';
 }
 
 function commResetStats(){
@@ -2545,7 +2715,91 @@ function commResetStats(){
   toast('All stats reset to 0','err');
 }
 
-// ── ALL PICKED PLAYERS (hardcoded from Firestore team data) ──
+// ── HARDCODED STATS FROM SPREADSHEET ─────────────────
+const EXCEL_STATS = {
+  "Cameron Boozer": {pts:41,reb:24,ast:7,stl:3,blk:2,to:10,foul:4,gamesPlayed:2},
+  "Graham Ike": {pts:44,reb:11,ast:3,stl:3,blk:0,to:3,foul:7,gamesPlayed:2},
+  "Donovan Dent": {pts:21,reb:7,ast:15,stl:7,blk:1,to:2,foul:1,gamesPlayed:2},
+  "Joshua Jefferson": {pts:2,reb:1,ast:0,stl:0,blk:0,to:0,foul:0,gamesPlayed:2},
+  "Zuby Ejiofor": {pts:32,reb:20,ast:6,stl:2,blk:5,to:4,foul:4,gamesPlayed:2},
+  "Flory Bidunga": {pts:18,reb:12,ast:1,stl:2,blk:4,to:3,foul:8,gamesPlayed:2},
+  "Kingston Fleming": {pts:27,reb:11,ast:8,stl:3,blk:1,to:3,foul:4,gamesPlayed:2},
+  "Kingston Flemings": {pts:27,reb:11,ast:8,stl:3,blk:1,to:3,foul:4,gamesPlayed:2},
+  "Koa Peat": {pts:29,reb:17,ast:3,stl:0,blk:2,to:3,foul:6,gamesPlayed:2},
+  "Aday Mara": {pts:35,reb:12,ast:11,stl:1,blk:7,to:2,foul:1,gamesPlayed:2},
+  "Trey Kaufman-Renn": {pts:44,reb:18,ast:5,stl:1,blk:0,to:1,foul:3,gamesPlayed:2},
+  "Darius Acuff Jr.": {pts:60,reb:4,ast:13,stl:2,blk:0,to:5,foul:5,gamesPlayed:2},
+  "Keaton Wagler": {pts:32,reb:12,ast:9,stl:2,blk:2,to:3,foul:5,gamesPlayed:2},
+  "Pryce Sandfort": {pts:38,reb:10,ast:4,stl:3,blk:0,to:1,foul:3,gamesPlayed:2},
+  "AJ Dybantsa": {pts:35,reb:10,ast:1,stl:0,blk:0,to:5,foul:1,gamesPlayed:2},
+  "Alex Condon": {pts:34,reb:8,ast:12,stl:2,blk:3,to:3,foul:4,gamesPlayed:2},
+  "Labaron Philon Jr.": {pts:38,reb:14,ast:19,stl:3,blk:0,to:9,foul:3,gamesPlayed:2},
+  "Brayden Burries": {pts:34,reb:14,ast:4,stl:0,blk:2,to:5,foul:4,gamesPlayed:2},
+  "Jeremy Fears Jr.": {pts:19,reb:5,ast:27,stl:1,blk:0,to:9,foul:4,gamesPlayed:2},
+  "Tyler Tanner": {pts:53,reb:9,ast:9,stl:5,blk:0,to:3,foul:2,gamesPlayed:2},
+  "Braden Smith": {pts:38,reb:5,ast:16,stl:1,blk:0,to:10,foul:2,gamesPlayed:2},
+  "Yaxel Lendeborg": {pts:34,reb:10,ast:6,stl:0,blk:1,to:3,foul:5,gamesPlayed:2},
+  "Tarris Reed Jr.": {pts:41,reb:40,ast:5,stl:1,blk:3,to:5,foul:3,gamesPlayed:2},
+  "Thijs De Ridder": {pts:32,reb:11,ast:4,stl:1,blk:0,to:3,foul:5,gamesPlayed:2},
+  "Christian Anderson": {pts:25,reb:5,ast:8,stl:8,blk:0,to:4,foul:2,gamesPlayed:2},
+  "Darryn Peterson": {pts:49,reb:5,ast:1,stl:2,blk:4,to:4,foul:3,gamesPlayed:2},
+  "Tre White": {pts:16,reb:12,ast:4,stl:0,blk:0,to:4,foul:3,gamesPlayed:2},
+  "Emanuel Sharp": {pts:34,reb:8,ast:2,stl:1,blk:0,to:3,foul:7,gamesPlayed:2},
+  "Brant Byers": {pts:28,reb:10,ast:1,stl:1,blk:2,to:1,foul:6,gamesPlayed:2},
+  "Milan Momcilovic": {pts:37,reb:9,ast:3,stl:2,blk:2,to:0,foul:1,gamesPlayed:2},
+  "Thomas Haugh": {pts:33,reb:10,ast:9,stl:2,blk:1,to:3,foul:3,gamesPlayed:2},
+  "Aleksas Bieliauskas": {pts:2,reb:7,ast:1,stl:1,blk:1,to:0,foul:3,gamesPlayed:2},
+  "Mikel Brown Jr.": {pts:0,reb:0,ast:0,stl:0,blk:0,to:0,foul:0,gamesPlayed:2},
+  "Coen Carr": {pts:38,reb:14,ast:2,stl:2,blk:3,to:4,foul:0,gamesPlayed:2},
+  "Melvin Council Jr.": {pts:19,reb:15,ast:8,stl:1,blk:2,to:4,foul:5,gamesPlayed:2},
+  "Fletcher Loyer": {pts:38,reb:3,ast:3,stl:2,blk:0,to:3,foul:2,gamesPlayed:2},
+  "Andrej Stojakovic": {pts:30,reb:7,ast:2,stl:0,blk:1,to:1,foul:4,gamesPlayed:2},
+  "Nate Ament": {pts:16,reb:7,ast:1,stl:1,blk:2,to:5,foul:2,gamesPlayed:2},
+  "Silas Demary Jr.": {pts:2,reb:3,ast:4,stl:2,blk:0,to:0,foul:1,gamesPlayed:2},
+  "Ja'Kobi Gillespie": {pts:50,reb:6,ast:15,stl:4,blk:0,to:6,foul:4,gamesPlayed:2},
+  "Christian Hammond": {pts:9,reb:5,ast:4,stl:2,blk:0,to:2,foul:2,gamesPlayed:2},
+  "Tyler Bilodeau": {pts:0,reb:0,ast:0,stl:0,blk:0,to:0,foul:0,gamesPlayed:2},
+  "Mark Mitchell": {pts:19,reb:3,ast:5,stl:1,blk:2,to:5,foul:1,gamesPlayed:2},
+  "David Mirkovic": {pts:36,reb:22,ast:7,stl:0,blk:0,to:4,foul:3,gamesPlayed:2},
+  "Nick Boyd": {pts:27,reb:5,ast:6,stl:0,blk:0,to:1,foul:5,gamesPlayed:2},
+  "Duke Miles": {pts:22,reb:1,ast:9,stl:6,blk:0,to:6,foul:4,gamesPlayed:2},
+  "Marcus Millender": {pts:13,reb:3,ast:6,stl:2,blk:0,to:2,foul:2,gamesPlayed:2},
+  "Jaden Bradley": {pts:25,reb:6,ast:4,stl:3,blk:1,to:2,foul:3,gamesPlayed:2},
+  "Tamin Lipsey": {pts:29,reb:5,ast:12,stl:8,blk:0,to:4,foul:5,gamesPlayed:2},
+  "Tyler Perkins": {pts:15,reb:5,ast:2,stl:1,blk:0,to:0,foul:2,gamesPlayed:2},
+  "Rueben Chinyelu": {pts:14,reb:14,ast:1,stl:2,blk:0,to:4,foul:7,gamesPlayed:2},
+  "Robert Wright III": {pts:14,reb:2,ast:3,stl:2,blk:0,to:2,foul:2,gamesPlayed:2},
+  "Motiejus Krivas": {pts:20,reb:21,ast:4,stl:0,blk:3,to:3,foul:4,gamesPlayed:2},
+};
+
+async function loadExcelStats(){
+  const btn=document.getElementById('load-excel-btn');
+  btn.disabled=true; btn.textContent='⏳ Loading…';
+  const statusEl=document.getElementById('refresh-status');
+  statusEl.textContent='Applying spreadsheet stats…';
+
+  // Apply to local STATS
+  Object.entries(EXCEL_STATS).forEach(([name,stats])=>{
+    STATS[name]=stats;
+  });
+
+  // Push each player to Firebase
+  let pushed=0;
+  for(const [name,stats] of Object.entries(EXCEL_STATS)){
+    if(window.fbSavePlayerStats){
+      await window.fbSavePlayerStats(name,stats).catch(()=>{});
+      pushed++;
+    }
+  }
+
+  recalcAndSync();
+  renderCommEntries();
+
+  statusEl.textContent=`✅ Loaded ${pushed} players from spreadsheet and pushed to Firebase.`;
+  toast(`Stats loaded! ${pushed} players updated ✓`,'ok');
+  btn.disabled=false; btn.textContent='📊 Load Stats from Spreadsheet';
+}
+
 const ALL_PICKED_PLAYERS = {
   "AJ Brown":"Florida","AJ Dybantsa":"BYU","Abdullah Ahmed":"BYU",
   "Aday Mara":"Michigan","Aleksas Bieliauskas":"Wisconsin","Alex Condon":"Florida",
@@ -2685,8 +2939,7 @@ async function initializeAllStats(){
     }
   }
 
-  recalcAll();
-  saveAll();
+  recalcAndSync();
   renderCommEntries();
 
   statusEl.textContent = `✅ Done! ${gamesProcessed} games, ${playersFound} player-game matches, ${pushed} players pushed to Firebase.`;
