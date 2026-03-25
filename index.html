@@ -43,7 +43,7 @@ GA4 TAG END -->
 <!-- Firebase — real-time shared data -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, collection, getDocs, onSnapshot, deleteDoc, query, orderBy }
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, onSnapshot, deleteDoc, query, orderBy, writeBatch }
   from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -203,6 +203,18 @@ window.fbSavePlayerStats = async (name, stats) => {
   const {doc,setDoc} = window._fb;
   const key = name.replace(/[^a-zA-Z0-9]/g,'_');
   await setDoc(doc(window._db,'playerStats',key), {...stats, name});
+};
+
+// Batch write all player stats at once — avoids rate limit issues
+window.fbSaveAllPlayerStats = async (statsObj) => {
+  if(!window._db) return;
+  const batch = writeBatch(window._db);
+  Object.entries(statsObj).forEach(([name, stats])=>{
+    const key = name.replace(/[^a-zA-Z0-9]/g,'_');
+    const ref = doc(window._db,'playerStats',key);
+    batch.set(ref, {...stats, name});
+  });
+  await batch.commit();
 };
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800;900&family=Lora:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -2781,29 +2793,28 @@ async function loadExcelStats(){
   const statusEl=document.getElementById('refresh-status');
   statusEl.textContent='Applying spreadsheet stats…';
 
-  // Apply ALL to local STATS first before touching Firebase
-  Object.entries(EXCEL_STATS).forEach(([name,stats])=>{
-    STATS[name]=stats;
-  });
-
-  // Save locally so recalc uses correct data
+  // Apply ALL to local STATS first
+  Object.entries(EXCEL_STATS).forEach(([name,stats])=>{ STATS[name]=stats; });
   LS.s('bb_stats', STATS);
   recalcAndSync();
   renderCommEntries();
 
-  statusEl.textContent=`Pushing ${Object.keys(EXCEL_STATS).length} players to Firebase…`;
+  statusEl.textContent=`Pushing ${Object.keys(EXCEL_STATS).length} players to Firebase in one batch…`;
 
-  // Now push to Firebase — fire and forget, don't await each one
-  // This prevents the onSnapshot listener from interfering mid-loop
-  const promises = Object.entries(EXCEL_STATS).map(([name,stats])=>{
-    if(window.fbSavePlayerStats) return window.fbSavePlayerStats(name,stats).catch(()=>{});
-    return Promise.resolve();
-  });
-  await Promise.all(promises);
+  try{
+    if(window.fbSaveAllPlayerStats){
+      await window.fbSaveAllPlayerStats(EXCEL_STATS);
+      statusEl.textContent=`✅ All ${Object.keys(EXCEL_STATS).length} players pushed to Firebase successfully.`;
+      toast(`Stats loaded! ${Object.keys(EXCEL_STATS).length} players updated ✓`,'ok');
+    } else {
+      statusEl.textContent='⚠ Firebase not ready — stats saved locally only';
+    }
+  } catch(e){
+    statusEl.textContent='❌ Firebase error: '+e.message;
+    toast('Firebase batch write failed','err');
+    console.error('Batch write error:',e);
+  }
 
-  const pushed = Object.keys(EXCEL_STATS).length;
-  statusEl.textContent=`✅ Loaded ${pushed} players from spreadsheet and pushed to Firebase.`;
-  toast(`Stats loaded! ${pushed} players updated ✓`,'ok');
   btn.disabled=false; btn.textContent='📊 Load Stats from Spreadsheet';
 }
 
@@ -4240,8 +4251,17 @@ function init(){
       if(document.getElementById('page-commissioner')?.classList.contains('active')){ renderCommUsers(); renderCommEmails(); }
     },
     onStats: (fbStats) => {
-      Object.keys(STATS).forEach(k=>delete STATS[k]);
-      Object.assign(STATS, fbStats);
+      const fbCount = Object.keys(fbStats).length;
+      const localCount = Object.keys(STATS).length;
+      // Only overwrite local stats if Firebase has at least as many players
+      // Prevents partial Firestore snapshots from wiping a full local load
+      if(fbCount >= localCount){
+        Object.keys(STATS).forEach(k=>delete STATS[k]);
+        Object.assign(STATS, fbStats);
+        LS.s('bb_stats', STATS);
+      } else {
+        console.log(`Firebase stats (${fbCount}) < local (${localCount}) — keeping local`);
+      }
       recalcAll(); renderLB('all'); renderHomeLB();
       if(document.getElementById('page-myteams')?.classList.contains('active')) renderMyTeams();
     },
