@@ -1084,9 +1084,9 @@ nav{display:flex;padding:0 20px;height:38px;overflow-x:auto;gap:0;}
       <div class="comm-section">
         <div class="comm-section-title">➕ Add Team Manually</div>
         <p style="font-size:12px;color:var(--muted);font-style:italic;margin-bottom:14px;line-height:1.6">
-          For someone who missed the deadline or emailed you. Fill in their info and picks below — creates their entry directly in Firebase as if they signed up normally.
+          For someone who missed the deadline. Fill in their details and picks below.
         </p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
           <div>
             <label class="fm-label">Owner Email</label>
             <input type="email" class="fm-input" id="at-email" placeholder="friend@gmail.com" />
@@ -1096,17 +1096,20 @@ nav{display:flex;padding:0 20px;height:38px;overflow-x:auto;gap:0;}
             <input type="text" class="fm-input" id="at-name" placeholder="e.g. Mike's Team" />
           </div>
           <div>
-            <label class="fm-label">Password (for their account)</label>
-            <input type="text" class="fm-input" id="at-pw" placeholder="temp password" value="march2026" />
+            <label class="fm-label">Tiebreaker Guess (combined champ pts)</label>
+            <input type="number" class="fm-input" id="at-tb" placeholder="145" />
           </div>
           <div>
-            <label class="fm-label">Tiebreaker Guess (total champ pts)</label>
-            <input type="number" class="fm-input" id="at-tb" placeholder="145" min="80" max="300" />
+            <label class="fm-label">Temp Password</label>
+            <input type="text" class="fm-input" id="at-pw" value="march2026" />
           </div>
         </div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Pick 16 Teams &amp; 1 Player Each</div>
-        <div id="at-picks-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px;margin-bottom:12px"></div>
-        <div style="display:flex;gap:8px;align-items:center;margin-top:12px">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Their 16 Team Picks + Player</div>
+        <div id="at-picks-list" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px">
+          <!-- populated by renderManualTeamPicksGrid() on dashboard load -->
+        </div>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:10px">If rows don't appear, click: <button class="btn btn-ghost btn-sm" onclick="renderManualTeamPicksGrid()">Load Team Dropdowns</button></p>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <button class="btn btn-primary" onclick="submitManualTeam()">➕ Add Team to Firebase</button>
           <button class="btn btn-ghost btn-sm" onclick="clearManualTeamForm()">Clear</button>
           <span id="at-status" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)"></span>
@@ -2577,45 +2580,37 @@ function commForceRefresh(){
 // ═══════════════════════════════════════════════════════
 // MANUAL TEAM ADDITION
 // ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// MANUAL TEAM ADDITION
+// ═══════════════════════════════════════════════════════
 function renderManualTeamPicksGrid(){
-  const c = document.getElementById('at-picks-grid');
-  if(!c) return;
-  const regions = ['EAST','WEST','SOUTH','MIDWEST'];
-  let html = '';
-  regions.forEach(r=>{
-    html += `<div style="background:var(--raised);border:1px solid var(--border);padding:10px;grid-column:1/-1">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:8px">◆ ${r}</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px">`;
-    ALL68.filter(e=>e.r===r).forEach(e=>{
-      const roster = ROSTERS[e.t]||[];
-      const opts = roster.map(p=>`<option value="${p}">${p}</option>`).join('');
-      html += `<div style="display:flex;gap:6px;align-items:center">
-        <input type="checkbox" id="at-chk-${e.t.replace(/[^a-zA-Z0-9]/g,'_')}" 
-               style="cursor:pointer;flex-shrink:0" 
-               onchange="toggleAtTeam('${e.t.replace(/'/g,"\\'")}')"/>
-        <label style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:80px"
-               for="at-chk-${e.t.replace(/[^a-zA-Z0-9]/g,'_')}">${e.t}</label>
-        <select id="at-sel-${e.t.replace(/[^a-zA-Z0-9]/g,'_')}" 
-                class="slot-sel" style="display:none;font-size:11px;padding:3px 6px">
-          ${opts}
-        </select>
-      </div>`;
-    });
-    html += '</div></div>';
-  });
-  c.innerHTML = html;
+  const c = document.getElementById('at-picks-list');
+  if(!c){ console.warn('at-picks-list not found'); return; }
+  if(c.children.length > 0) return; // already rendered
+  if(!ALL68 || !ALL68.length){ console.warn('ALL68 not loaded yet'); return; }
+  const allTeamNames = ALL68.map(e=>e.t).filter((t,i,a)=>a.indexOf(t)===i).sort();
+  const teamOpts = allTeamNames.map(t=>`<option value="${t}">${t}</option>`).join('');
+  c.innerHTML = Array.from({length:16},(_,i)=>`
+    <div style="display:flex;gap:6px;align-items:center;background:var(--raised);border:1px solid var(--border);padding:6px 8px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--muted);min-width:16px">${i+1}</div>
+      <select class="slot-sel" id="at-team-${i}" onchange="updateAtPlayer(${i})" style="flex:1;font-size:11px;padding:4px">
+        <option value="">— Team —</option>${teamOpts}
+      </select>
+      <select class="slot-sel" id="at-player-${i}" style="flex:1;font-size:11px;padding:4px">
+        <option value="">— Player —</option>
+      </select>
+    </div>`).join('');
+  console.log('Manual team grid rendered with',allTeamNames.length,'teams');
 }
 
-function toggleAtTeam(teamName){
-  const key = teamName.replace(/[^a-zA-Z0-9]/g,'_');
-  const chk = document.getElementById('at-chk-'+key);
-  const sel = document.getElementById('at-sel-'+key);
-  if(!chk||!sel) return;
-  sel.style.display = chk.checked ? 'block' : 'none';
-  // Count selected
-  const count = document.querySelectorAll('#at-picks-grid input[type=checkbox]:checked').length;
-  const statusEl = document.getElementById('at-status');
-  if(statusEl) statusEl.textContent = `${count}/16 teams selected`;
+function updateAtPlayer(i){
+  const teamSel = document.getElementById('at-team-'+i);
+  const playerSel = document.getElementById('at-player-'+i);
+  if(!teamSel||!playerSel) return;
+  const team = teamSel.value;
+  const roster = ROSTERS[team]||[];
+  playerSel.innerHTML = `<option value="">— Player —</option>` +
+    roster.map(p=>`<option value="${p}">${p}</option>`).join('');
 }
 
 async function submitManualTeam(){
@@ -2628,22 +2623,22 @@ async function submitManualTeam(){
   if(!email||!email.includes('@')){ toast('Valid email required','err'); return; }
   if(!name){ toast('Team name required','err'); return; }
 
-  // Collect picks
+  // Collect picks from the 16 rows
   const picks = {};
   const teams = [];
-  document.querySelectorAll('#at-picks-grid input[type=checkbox]:checked').forEach(chk=>{
-    const key = chk.id.replace('at-chk-','');
-    // Find team name from key (reverse the replace)
-    const teamName = ALL68.find(e=>e.t.replace(/[^a-zA-Z0-9]/g,'_')===key)?.t;
-    if(!teamName) return;
-    const sel = document.getElementById('at-sel-'+key);
-    const player = sel?.value||'';
-    picks[teamName] = player;
-    teams.push(teamName);
-  });
+  let missing = 0;
+  for(let i=0;i<16;i++){
+    const teamSel   = document.getElementById('at-team-'+i);
+    const playerSel = document.getElementById('at-player-'+i);
+    const team   = teamSel?.value;
+    const player = playerSel?.value;
+    if(!team){ missing++; continue; }
+    picks[team] = player||'';
+    teams.push(team);
+  }
 
-  if(teams.length !== 16){
-    toast(`Select exactly 16 teams (${teams.length} selected)`, 'err');
+  if(teams.length < 16){
+    toast(`Fill in all 16 teams (${teams.length} filled)`, 'err');
     return;
   }
 
@@ -2654,48 +2649,56 @@ async function submitManualTeam(){
     id, name, owner:email, teams, picks,
     tiebreaker:tb, points:0, adjustment:0, createdAt:id
   };
+  entry.points = calcTeamPts(entry);
 
-  // Add user if doesn't exist
+  // Create user if doesn't exist
   if(!USERS[email]){
     USERS[email] = {email, pw, joinedAt:id};
     if(window.fbSaveUser) await window.fbSaveUser(email, USERS[email]).catch(()=>{});
   }
 
-  // Add team
-  TEAMS.push(entry);
-  entry.points = calcTeamPts(entry);
-
-  // Save to Firebase
+  // Save team to Firebase and wait for confirmation
   if(window.fbSaveTeam){
-    await window.fbSaveTeam(entry).catch(e=>{
-      toast('Firebase error — check connection','err');
-      statusEl.textContent = 'Error: '+e.message;
+    try{
+      await window.fbSaveTeam(entry);
+    } catch(e){
+      toast('Firebase error: '+e.message,'err');
+      statusEl.textContent='Error — team not saved';
+      TEAMS=TEAMS.filter(t=>t.id!==id);
       return;
-    });
+    }
   }
 
-  LS.s('bb_teams', TEAMS);
-  LS.s('bb_users', USERS);
+  // Also write directly to localStorage as backup
+  LS.s('bb_teams',TEAMS);
+  LS.s('bb_users',USERS);
 
-  renderCommEntries();
-  renderCommUsers();
-  updateHeroStats();
-  document.getElementById('cs-entries').textContent = TEAMS.length;
-  statusEl.textContent = `✅ "${name}" added for ${email}`;
-  toast(`"${name}" added ✓`, 'ok');
+  // Give Firebase onSnapshot time to confirm then re-render
+  setTimeout(()=>{
+    renderCommEntries();
+    renderCommUsers();
+    renderLB('all');
+    renderHomeLB();
+    updateHeroStats();
+    document.getElementById('cs-entries').textContent=TEAMS.length;
+  }, 1000);
+
+  statusEl.textContent=`✅ "${name}" added for ${email}`;
+  toast(`"${name}" added to Firebase ✓`,'ok');
 }
 
 function clearManualTeamForm(){
-  document.getElementById('at-email').value='';
-  document.getElementById('at-name').value='';
-  document.getElementById('at-pw').value='march2026';
-  document.getElementById('at-tb').value='';
-  document.querySelectorAll('#at-picks-grid input[type=checkbox]').forEach(chk=>{
-    chk.checked=false;
-    const key=chk.id.replace('at-chk-','');
-    const sel=document.getElementById('at-sel-'+key);
-    if(sel) sel.style.display='none';
+  ['at-email','at-name','at-tb'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
   });
+  document.getElementById('at-pw').value='march2026';
+  // Reset all team/player dropdowns
+  for(let i=0;i<16;i++){
+    const ts=document.getElementById('at-team-'+i);
+    const ps=document.getElementById('at-player-'+i);
+    if(ts) ts.value='';
+    if(ps) ps.innerHTML='<option value="">— Player —</option>';
+  }
   document.getElementById('at-status').textContent='';
 }
 
@@ -2778,23 +2781,27 @@ async function loadExcelStats(){
   const statusEl=document.getElementById('refresh-status');
   statusEl.textContent='Applying spreadsheet stats…';
 
-  // Apply to local STATS
+  // Apply ALL to local STATS first before touching Firebase
   Object.entries(EXCEL_STATS).forEach(([name,stats])=>{
     STATS[name]=stats;
   });
 
-  // Push each player to Firebase
-  let pushed=0;
-  for(const [name,stats] of Object.entries(EXCEL_STATS)){
-    if(window.fbSavePlayerStats){
-      await window.fbSavePlayerStats(name,stats).catch(()=>{});
-      pushed++;
-    }
-  }
-
+  // Save locally so recalc uses correct data
+  LS.s('bb_stats', STATS);
   recalcAndSync();
   renderCommEntries();
 
+  statusEl.textContent=`Pushing ${Object.keys(EXCEL_STATS).length} players to Firebase…`;
+
+  // Now push to Firebase — fire and forget, don't await each one
+  // This prevents the onSnapshot listener from interfering mid-loop
+  const promises = Object.entries(EXCEL_STATS).map(([name,stats])=>{
+    if(window.fbSavePlayerStats) return window.fbSavePlayerStats(name,stats).catch(()=>{});
+    return Promise.resolve();
+  });
+  await Promise.all(promises);
+
+  const pushed = Object.keys(EXCEL_STATS).length;
   statusEl.textContent=`✅ Loaded ${pushed} players from spreadsheet and pushed to Firebase.`;
   toast(`Stats loaded! ${pushed} players updated ✓`,'ok');
   btn.disabled=false; btn.textContent='📊 Load Stats from Spreadsheet';
@@ -4170,10 +4177,57 @@ function init(){
   if(CUR_USER&&USERS[CUR_USER]) updateAuthUI();
   if(EJ_CONFIG.pub){ try{ emailjs.init(EJ_CONFIG.pub); }catch(e){} }
 
-  // Register Firebase callbacks — these run when Firestore sends updates
-  // AFTER init() has set up all variables
+  // One-time team injection for Jeff Hetrick
+  // Runs only if team not already in Firebase
+  setTimeout(async ()=>{
+    const already = TEAMS.find(t=>t.owner==='jjeffhetrick@gmail.com');
+    if(already){ console.log('Jeff Hetrick already exists'); return; }
+    const id = 1773934311250; // fixed ID so it never duplicates
+    const entry = {
+      id, name:"Jeff Hetrick's Team", owner:'jjeffhetrick@gmail.com',
+      tiebreaker:150, points:0, adjustment:0, createdAt:id,
+      teams:['Duke','Florida','Virginia','Iowa State','Kansas','Houston','Louisville',
+             'Tennessee','Michigan State','Illinois','UConn','BYU','Arizona','Michigan',
+             'Arkansas','Nebraska'],
+      picks:{
+        'Duke':'Cameron Boozer',
+        'Florida':'Thomas Haugh',
+        'Virginia':'Thijs De Ridder',
+        'Iowa State':'Joshua Jefferson',
+        'Kansas':'Flory Bidunga',
+        'Houston':'Emanuel Sharp',
+        'Louisville':'Mikel Brown Jr.',
+        'Tennessee':'Nate Ament',
+        'Michigan State':'Jeremy Fears Jr.',
+        'Illinois':'Keaton Wagler',
+        'UConn':'Tarris Reed Jr.',
+        'BYU':'Robert Wright III',
+        'Arizona':'Motiejus Krivas',
+        'Michigan':'Yaxel Lendeborg',
+        'Arkansas':'Darius Acuff Jr.',
+        'Nebraska':'Pryce Sandfort',
+      }
+    };
+    entry.points = calcTeamPts(entry);
+    // Save user
+    if(!USERS['jjeffhetrick@gmail.com']){
+      USERS['jjeffhetrick@gmail.com']={email:'jjeffhetrick@gmail.com',pw:'march2026',joinedAt:id};
+      if(window.fbSaveUser) await window.fbSaveUser('jjeffhetrick@gmail.com',USERS['jjeffhetrick@gmail.com']).catch(()=>{});
+    }
+    // Save team
+    TEAMS.push(entry);
+    if(window.fbSaveTeam) await window.fbSaveTeam(entry).catch(e=>console.error('Jeff save failed:',e));
+    LS.s('bb_teams',TEAMS);
+    LS.s('bb_users',USERS);
+    console.log('✅ Jeff Hetrick team added');
+  }, 3000);
+
+  // Register Firebase callbacks
   window._fbCallbacks = {
     onTeams: (fbTeams) => {
+      // Firebase is source of truth — replace local TEAMS with Firebase data
+      // This is correct: after submitManualTeam saves to Firebase,
+      // the onSnapshot fires WITH the new team included
       TEAMS.length=0; fbTeams.forEach(t=>TEAMS.push(t));
       recalcAll(); renderLB('all'); renderHomeLB(); updateHeroStats();
       if(document.getElementById('page-myteams')?.classList.contains('active')) renderMyTeams();
