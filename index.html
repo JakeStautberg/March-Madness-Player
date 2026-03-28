@@ -2588,9 +2588,15 @@ function commSaveStats(){
     foul:parseInt(document.getElementById('s-foul').value)||0,
     gamesPlayed:parseInt(document.getElementById('s-gp').value)||0,
   };
+  // Save to STATS
   STATS[name]=s;
+  // Save to manual overrides — these take priority over EXCEL_STATS on every load
+  const overrides = LS.g('bb_stat_overrides',{});
+  overrides[name]=s;
+  LS.s('bb_stat_overrides',overrides);
+  LS.s('bb_stats',STATS);
   recalcAll();
-  // Sync updated stats and all team points to Firebase
+  // Push to Firebase
   if(window.fbSavePlayerStats) window.fbSavePlayerStats(name,s).catch(()=>{});
   TEAMS.forEach(t=>{ if(window.fbSaveTeam) window.fbSaveTeam(t).catch(()=>{}); });
   renderCommEntries();
@@ -4208,14 +4214,18 @@ function toast(msg,type=''){
 // ═══════════════════════════════════════════════════════
 function init(){
   loadAll();
-  // Always apply spreadsheet stats — these are the source of truth
-  // Overwrites any partial/wrong stats from Firebase or localStorage
+  // Apply spreadsheet stats as base for everyone
   if(typeof EXCEL_STATS !== 'undefined'){
     Object.entries(EXCEL_STATS).forEach(([name,stats])=>{
       STATS[name] = stats;
     });
-    LS.s('bb_stats', STATS);
   }
+  // Apply manual overrides on top — these always win over EXCEL_STATS
+  const manualOverrides = LS.g('bb_stat_overrides',{});
+  Object.entries(manualOverrides).forEach(([name,stats])=>{
+    STATS[name] = stats;
+  });
+  LS.s('bb_stats', STATS);
   TEXT_OVERRIDES = LS.g('bb_text_overrides', {});
   initTheme();
   if(CUR_USER&&USERS[CUR_USER]) updateAuthUI();
@@ -4284,16 +4294,16 @@ function init(){
       if(document.getElementById('page-commissioner')?.classList.contains('active')){ renderCommUsers(); renderCommEmails(); }
     },
     onStats: (fbStats) => {
-      // Apply Firebase stats first
+      // Start with Firebase stats
       Object.keys(STATS).forEach(k=>delete STATS[k]);
       Object.assign(STATS, fbStats);
-
-      // Always override with spreadsheet data — source of truth
+      // Always override with spreadsheet data
       if(typeof EXCEL_STATS !== 'undefined'){
-        Object.entries(EXCEL_STATS).forEach(([name,stats])=>{
-          STATS[name] = stats;
-        });
+        Object.entries(EXCEL_STATS).forEach(([name,stats])=>{ STATS[name]=stats; });
       }
+      // Manual overrides take highest priority
+      const manualOverrides = LS.g('bb_stat_overrides',{});
+      Object.entries(manualOverrides).forEach(([name,stats])=>{ STATS[name]=stats; });
       LS.s('bb_stats', STATS);
       recalcAll(); renderLB('all'); renderHomeLB();
       if(document.getElementById('page-myteams')?.classList.contains('active')) renderMyTeams();
