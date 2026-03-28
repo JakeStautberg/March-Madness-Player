@@ -4294,16 +4294,13 @@ function init(){
       if(document.getElementById('page-commissioner')?.classList.contains('active')){ renderCommUsers(); renderCommEmails(); }
     },
     onStats: (fbStats) => {
-      // Start with Firebase stats
       Object.keys(STATS).forEach(k=>delete STATS[k]);
-      Object.assign(STATS, fbStats);
-      // Always override with spreadsheet data
+      // EXCEL_STATS first as base
       if(typeof EXCEL_STATS !== 'undefined'){
         Object.entries(EXCEL_STATS).forEach(([name,stats])=>{ STATS[name]=stats; });
       }
-      // Manual overrides take highest priority
-      const manualOverrides = LS.g('bb_stat_overrides',{});
-      Object.entries(manualOverrides).forEach(([name,stats])=>{ STATS[name]=stats; });
+      // Firebase on top — commissioner saves always win for ALL users
+      Object.assign(STATS, fbStats);
       LS.s('bb_stats', STATS);
       recalcAll(); renderLB('all'); renderHomeLB();
       if(document.getElementById('page-myteams')?.classList.contains('active')) renderMyTeams();
